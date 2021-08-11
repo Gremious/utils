@@ -1,3 +1,4 @@
+pub use core::future::Future;
 use hobo::{create::components as cmp, enclose as e, events, prelude::*, state};
 use wasm_bindgen_futures::spawn_local as spawn;
 use once_cell::sync::Lazy;
@@ -71,6 +72,22 @@ pub struct OauthToken {
 impl OauthToken {
 	pub fn fresh(&self) -> bool {
 		(self.created_at + chrono::Duration::seconds(self.expires_in - 15)) > chrono::Utc::now()
+	}
+}
+
+pub fn spawn_complain<T>(x: impl Future<Output = anyhow::Result<T>> + 'static) {
+	spawn(async move { if let Err(e) = x.await { log::error!("{:?}", e); } });
+}
+
+#[async_trait::async_trait(?Send)]
+trait ReqwestWasmResponseExt {
+	async fn json<T: serde::de::DeserializeOwned>(self) -> anyhow::Result<T>;
+}
+
+#[async_trait::async_trait(?Send)]
+impl ReqwestWasmResponseExt for reqwest::Response {
+	async fn json<T: serde::de::DeserializeOwned>(self) -> anyhow::Result<T> {
+		Ok(serde_json::from_str(&self.text().await?)?)
 	}
 }
 

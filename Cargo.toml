@@ -5,6 +5,7 @@ edition = "2018"
 
 [dependencies]
 anyhow = "1"
+async-trait = "0.1"
 chrono = { version = "0.4", features = ["serde"] }
 hobo = "0.1"
 log = "0.4"
@@ -13,6 +14,7 @@ reqwest = { version = "0.11", features = ["gzip", "brotli", "json", "rustls-tls"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 smart-default = "0.6"
+rand = "0.8"
 
 wasm-bindgen = { version = "0.2", features = ["nightly"] }
 wasm-bindgen-futures = "0.4"

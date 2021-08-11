@@ -3,6 +3,9 @@ use wasm_bindgen_futures::spawn_local as spawn;
 use once_cell::sync::Lazy;
 use serde::{Serialize, Deserialize};
 
+pub mod hobo_plus;
+pub mod error;
+
 pub static REQWEST_CLIENT: Lazy<reqwest::Client> = Lazy::new(reqwest::Client::new);
 
 // TODO: error type

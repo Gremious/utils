@@ -5,6 +5,7 @@ use serde::{Serialize, Deserialize};
 
 pub mod hobo_plus;
 pub mod error;
+pub mod debug;
 
 pub static REQWEST_CLIENT: Lazy<reqwest::Client> = Lazy::new(reqwest::Client::new);
 

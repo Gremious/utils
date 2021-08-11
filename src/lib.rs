@@ -8,6 +8,9 @@ pub mod error;
 
 pub static REQWEST_CLIENT: Lazy<reqwest::Client> = Lazy::new(reqwest::Client::new);
 
+pub fn window() -> web_sys::Window { web_sys::window().expect("no window") }
+pub fn document() -> web_sys::Document { window().document().expect("no document") }
+
 // TODO: error type
 pub trait SerdeJsonValueExt {
 	fn from_pointer<T: serde::de::DeserializeOwned>(&self, pointer: &str) -> anyhow::Result<T>;

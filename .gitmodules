@@ -1,0 +1,3 @@
+[submodule "hobo"]
+	path = hobo
+	url = https://github.com/GRDigital/hobo

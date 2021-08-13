@@ -1,5 +1,3 @@
-use super::*;
-
 // TODO: error type
 pub trait SerdeJsonValueExt {
 	fn from_pointer<T: serde::de::DeserializeOwned>(&self, pointer: &str) -> anyhow::Result<T>;

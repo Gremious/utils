@@ -1,5 +1,3 @@
-use super::*;
-
 pub trait LogIfError {
 	fn log_err(self) -> Self;
 }

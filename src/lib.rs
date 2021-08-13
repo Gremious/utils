@@ -7,7 +7,8 @@ use serde::{Serialize, Deserialize};
 pub mod hobo_plus;
 pub mod error;
 pub mod debug;
-pub mod serde;
+// I don't like this name but I don't want it to conflict with actual serde and idk what to call it
+pub mod serde_utils;
 
 pub static REQWEST_CLIENT: Lazy<reqwest::Client> = Lazy::new(reqwest::Client::new);
 

@@ -80,7 +80,7 @@ pub trait EleExt: Element {
 	fn name_typed<T: 'static>(self) -> Self {
 		if WORLD.is_dead(&self) { log::warn!("mark dead {:?}", self.as_entity()); return self; }
 		let name = core::any::type_name::<T>();
-   		let name = name.rsplit_once(':').map_or(name, |s| s.1);
+		let name = name.rsplit_once(':').map_or(name, |s| s.1);
 		self.attr("data-name", name)
 	}
 

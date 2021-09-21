@@ -60,14 +60,6 @@ pub struct Flipped(pub bool);
 pub struct Clicked(pub bool);
 
 pub trait EleExt: Element {
-	// Just a very common operation. Removes 1 level of nested closures.
-	// .with(|&element| element.add_component( ... -> .with_component(|&element| ...
-	// It shortens by 13 characters physically, and at least 15 emotionally
-	fn with_component<T: 'static>(self, f: impl FnOnce(&Self) -> T) -> Self {
-		self.add_component(f(&self));
-		self
-	}
-
 	// Another very common operation
 	// Removes 1 level of nested closures over with_component
 	// .with_component(|&element| FOO.subscribe(move |state| { ... -> .with_subscription(&FOO, move |&element, state| ...

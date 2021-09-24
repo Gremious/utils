@@ -32,7 +32,7 @@ pub trait EleExt: Element {
 	/// On click, flips a `BoolState` component in the given element and executes a passed-in closure.
 	///
 	/// Closure parameters are `self`, and the already flipped state `bool`
-	fn on_flip(self, f: impl FnOnce(&Self, bool) + 'static + Copy) -> Self where Self: Sized + 'static + Copy {
+	fn on_flip(self, mut f: impl FnMut(&Self, bool) + 'static) -> Self where Self: Sized + 'static + Copy {
 		if self.try_get_cmp::<Flipped>().is_none() { self.add_component(Flipped(false)); };
 		self.add_on_click(move |_| {
 			let mut state = self.get_cmp_mut::<Flipped>();

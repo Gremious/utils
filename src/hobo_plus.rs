@@ -62,6 +62,12 @@ pub trait EleExt: Element {
 	fn clicked(self) -> bool {
 		self.get_cmp::<Clicked>().0
 	}
+
+	/// Equivalent to .with(|&element| element.add_child( ... ))
+	fn with_child<T: 'static + Element>(self, mut f: impl FnOnce(&Self) -> T + 'static ) -> Self where Self: Sized + 'static + Copy {
+		self.add_child(f(&self));
+		self
+	}
 }
 
 impl<T: Element> EleExt for T {}

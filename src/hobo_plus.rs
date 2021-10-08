@@ -19,7 +19,7 @@ pub trait EleExt: Element {
 
 	/// Adds an `data-name` attribute to the element with a value of T
 	fn name_typed<T: 'static>(self) -> Self {
-		if WORLD.is_dead(&self) { log::warn!("mark dead {:?}", self.as_entity()); return self; }
+		if self.is_dead() { log::warn!("mark dead {:?}", self.as_entity()); return self; }
 		let name = core::any::type_name::<T>();
 		let name = name.rsplit_once(':').map_or(name, |s| s.1);
 		self.attr("data-name", name)
@@ -61,12 +61,6 @@ pub trait EleExt: Element {
 	/// Make sure to actually call report_clicked() on the element first.
 	fn clicked(self) -> bool {
 		self.get_cmp::<Clicked>().0
-	}
-
-	/// Equivalent to .with(|&element| element.add_child( ... ))
-	fn with_child<T: 'static + Element>(self, mut f: impl FnOnce(&Self) -> T + 'static ) -> Self where Self: Sized + 'static + Copy {
-		self.add_child(f(&self));
-		self
 	}
 }
 

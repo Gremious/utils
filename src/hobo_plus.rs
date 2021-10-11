@@ -64,7 +64,7 @@ pub trait EleExt: Element {
 	}
 
 	/// Equivalent to .with(|&element| element.add_child( ... ))
-	fn with_child<T: Element>(self, mut f: impl FnOnce(&Self) -> T) -> Self where Self: Sized + 'static + Copy {
+	fn with_child<T: Element>(self, f: impl FnOnce(&Self) -> T) -> Self where Self: Sized + 'static + Copy {
 		self.add_child(f(&self));
 		self
 	}

@@ -52,7 +52,7 @@ pub trait EleExt: Element {
 		} else {
 			self.add_component(Clicked(false));
 			self.add_on_mouse_down(move |e| { e.prevent_default(); self.get_cmp_mut::<Clicked>().0 = true; });
-			self.add_component(web_sys::window().unwrap().on_mouse_up(move |_| self.get_cmp_mut::<Clicked>().0 = false));
+			self.get_cmp_mut_or_default::<Vec<_>>().push(web_sys::window().unwrap().on_mouse_up(move |_| self.get_cmp_mut::<Clicked>().0 = false));
 		}
 		self
 	}

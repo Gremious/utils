@@ -1,5 +1,8 @@
 use super::*;
 
+pub fn window() -> web_sys::Window { web_sys::window().expect("no window") }
+pub fn document() -> web_sys::Document { window().document().expect("no document") }
+
 /// Generic `bool` component for on-click state-switch-like events
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub struct Flipped(pub bool);

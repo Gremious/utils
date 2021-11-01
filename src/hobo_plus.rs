@@ -1,4 +1,4 @@
-use super::*;
+use hobo::{enclose as e, prelude::*};
 
 pub fn window() -> web_sys::Window { web_sys::window().expect("no window") }
 pub fn document() -> web_sys::Document { window().document().expect("no document") }

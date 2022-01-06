@@ -26,7 +26,7 @@ getrandom = { version = "*", features = ["js"] } # because of rand
 tokio = { version = "1", features = ["full"] }
 
 [patch.crates-io]
-hobo = { path = "hobo/lib" }
-hobo_derive = { path = "hobo/derive" }
-hobo_css = { path = "hobo/css" }
-hobo_css_macros = { path = "hobo/css/macros" }
+hobo = { path = "hobo/hobo" }
+hobo_derive = { path = "hobo/hobo_derive" }
+hobo_css = { path = "hobo/hobo_css" }
+hobo_css_macros = { path = "hobo/hobo_css_macros" }

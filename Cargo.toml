@@ -19,7 +19,7 @@ smart-default = "0.6"
 wasm-bindgen = { version = "0.2", features = ["nightly"] }
 wasm-bindgen-futures = "0.4"
 wasm-logger = "0.2"
-hobo = { path = "../hobo/hobo", version = "0.2" }
+hobo = { git = "https://github.com/GRDigital/hobo.git", version = "0.2" }
 getrandom = { version = "*", features = ["js"] } # because of rand
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]

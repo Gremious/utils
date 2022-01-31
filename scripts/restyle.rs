@@ -3,6 +3,10 @@
 //# css-color-parser = "0.1"
 //# clipboard = "0.5"
 
+// this is a cargo-play script
+// takes css from your clipboard and fixes it up and puts it back into your clipboard
+// don't know if we should use rust-script instead?
+
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 extern crate clipboard;
 

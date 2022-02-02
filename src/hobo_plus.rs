@@ -75,9 +75,8 @@ pub trait EleExt: Element {
 		self
 	}
 
-	fn font(self, style: css::Style) -> Self {
-		self.set_class_typed::<FontTag>(style);
-		self
+	fn font(self, style: &css::Style) -> Self {
+		self.class_typed::<FontTag>(style)
 	}
 }
 

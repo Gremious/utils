@@ -1,5 +1,8 @@
 use hobo::{enclose as e, prelude::*};
 
+#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
+pub struct FontTag;
+
 pub fn window() -> web_sys::Window { web_sys::window().expect("no window") }
 pub fn document() -> web_sys::Document { window().document().expect("no document") }
 
@@ -70,6 +73,10 @@ pub trait EleExt: Element {
 	fn with_child<T: Element>(self, f: impl FnOnce(&Self) -> T) -> Self where Self: Sized + 'static + Copy {
 		self.add_child(f(&self));
 		self
+	}
+
+	fn font(self, style: css::Style) -> Self {
+		self.add_class_typed::<FontTag>(style)
 	}
 }
 

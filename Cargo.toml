@@ -14,13 +14,16 @@ reqwest = { version = "0.11", features = ["gzip", "brotli", "json", "rustls-tls"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 smart-default = "0.6"
+wasm-bindgen = { version = "0.2", features = ["nightly"], optional = true }
+wasm-bindgen-futures = { version = "0.4", optional = true }
+wasm-logger = { version = "0.2", optional = true }
+hobo = { version = "0.2", optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-wasm-bindgen = { version = "0.2", features = ["nightly"] }
-wasm-bindgen-futures = "0.4"
-wasm-logger = "0.2"
-hobo = "0.2"
 getrandom = { version = "*", features = ["js"] } # because of rand
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { version = "1", features = ["full"] }
+
+[features]
+hobo_plus = ["wasm-bindgen", "wasm-bindgen-futures", "wasm-logger", "hobo"]

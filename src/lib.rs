@@ -1,4 +1,4 @@
-#[cfg(target_arch = "wasm32")] pub mod hobo_plus;
+#[cfg(feature = "hobo_plus")] pub mod hobo_plus;
 pub mod error;
 pub mod serde_utils;
 

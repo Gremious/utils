@@ -69,12 +69,6 @@ pub trait EleExt: Element {
 		self.get_cmp::<Clicked>().0
 	}
 
-	/// Equivalent to .with(|&element| element.add_child( ... ))
-	fn with_child<T: Element>(self, f: impl FnOnce(&Self) -> T) -> Self where Self: Sized + 'static + Copy {
-		self.add_child(f(&self));
-		self
-	}
-
 	fn font(self, style: &css::Style) -> Self {
 		self.class_typed::<FontTag>(style.clone())
 	}

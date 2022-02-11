@@ -76,28 +76,32 @@ pub trait EleExt: Element {
 
 impl<T: Element> EleExt for T {}
 
-// run a function every frame until it returns false
-// argument is delta milliseconds
-// skips the first frame immediately after because it's not possibel to calculate time delta
 pub fn animation(mut f: impl FnMut(f64) -> bool + 'static) {
+	animation_with_window(window(), f);
+}
+
+// run a function every frame until it returns false
+// fn argument is delta milliseconds
+// skips the first frame immediately after because it's not possible to calculate time delta
+pub fn animation_with_window(window: web_sys::Window, mut f: impl FnMut(f64) -> bool + 'static) {
 	use std::{cell::RefCell, rc::Rc};
 
 	// this weird refcelling is necessary for "recursion"
 	let cb = Rc::new(RefCell::new(None as Option<Closure<dyn FnMut(f64) + 'static>>));
 	let mut last_timestamp = None;
-	*cb.borrow_mut() = Some(Closure::wrap(Box::new(e!((cb) move |timestamp| {
+	*cb.borrow_mut() = Some(Closure::wrap(Box::new(e!((cb, window) move |timestamp| {
 		let last_timestamp = if let Some(x) = last_timestamp.as_mut() { x } else {
-			window().request_animation_frame(cb.borrow().as_ref().unwrap().as_ref().unchecked_ref()).unwrap();
+			window.request_animation_frame(cb.borrow().as_ref().unwrap().as_ref().unchecked_ref()).unwrap();
 			last_timestamp = Some(timestamp);
 			return;
 		};
 		let delta_t = timestamp - *last_timestamp;
 		*last_timestamp = timestamp;
 		if f(delta_t) {
-			window().request_animation_frame(cb.borrow().as_ref().unwrap().as_ref().unchecked_ref()).unwrap();
+			window.request_animation_frame(cb.borrow().as_ref().unwrap().as_ref().unchecked_ref()).unwrap();
 		} else {
 			let _drop = cb.borrow_mut().take();
 		}
 	})) as Box<dyn FnMut(f64) + 'static>));
-	window().request_animation_frame(cb.borrow().as_ref().unwrap().as_ref().unchecked_ref()).unwrap();
+	window.request_animation_frame(cb.borrow().as_ref().unwrap().as_ref().unchecked_ref()).unwrap();
 }

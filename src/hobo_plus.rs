@@ -58,7 +58,7 @@ pub trait EleExt: Element {
 		} else {
 			self.add_component(Clicked(false));
 			self.add_on_mouse_down(move |e| { e.prevent_default(); self.get_cmp_mut::<Clicked>().0 = true; });
-			self.get_cmp_mut_or_default::<Vec<_>>().push(web_sys::window().unwrap().on_mouse_up(move |_| self.get_cmp_mut::<Clicked>().0 = false));
+			self.get_cmp_mut_or_default::<Vec<_>>().push(window().on_mouse_up(move |_| self.get_cmp_mut::<Clicked>().0 = false));
 		}
 		self
 	}
@@ -87,17 +87,17 @@ pub fn animation(mut f: impl FnMut(f64) -> bool + 'static) {
 	let mut last_timestamp = None;
 	*cb.borrow_mut() = Some(Closure::wrap(Box::new(e!((cb) move |timestamp| {
 		let last_timestamp = if let Some(x) = last_timestamp.as_mut() { x } else {
-			web_sys::window().unwrap().request_animation_frame(cb.borrow().as_ref().unwrap().as_ref().unchecked_ref()).unwrap();
+			window().request_animation_frame(cb.borrow().as_ref().unwrap().as_ref().unchecked_ref()).unwrap();
 			last_timestamp = Some(timestamp);
 			return;
 		};
 		let delta_t = timestamp - *last_timestamp;
 		*last_timestamp = timestamp;
 		if f(delta_t) {
-			web_sys::window().unwrap().request_animation_frame(cb.borrow().as_ref().unwrap().as_ref().unchecked_ref()).unwrap();
+			window().request_animation_frame(cb.borrow().as_ref().unwrap().as_ref().unchecked_ref()).unwrap();
 		} else {
 			let _drop = cb.borrow_mut().take();
 		}
 	})) as Box<dyn FnMut(f64) + 'static>));
-	web_sys::window().unwrap().request_animation_frame(cb.borrow().as_ref().unwrap().as_ref().unchecked_ref()).unwrap();
+	window().request_animation_frame(cb.borrow().as_ref().unwrap().as_ref().unchecked_ref()).unwrap();
 }

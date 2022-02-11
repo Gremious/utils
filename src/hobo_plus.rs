@@ -50,15 +50,26 @@ pub trait EleExt: Element {
 
 	/// Adds the `Clicked` component to an element which allows you to tell whether it is currently being clicked on (mousedown active).
 	///
+	/// Uses the default window (e.g. [web_sys::window()])
+	///
 	/// See: `clicked()`
 	fn report_clicked(self) -> Self where Self: Sized + 'static + Copy {
+		self.report_clicked_on_window(window())
+	}
+
+	/// Adds the `Clicked` component to an element which allows you to tell whether it is currently being clicked on (mousedown active).
+	///
+	/// Uses the passed in [web_sys::Window]
+	///
+	/// See: `clicked()`
+	fn report_clicked_on_window(self, window: web_sys::Window) -> Self where Self: Sized + 'static + Copy {
 		if self.try_get_cmp::<Clicked>().is_some() {
 			// wish i could compile_error here tbh
 			log::warn!("Element already has the Clicked component. Did you accidentally call report_clicked() twice? {:#?}", self.as_entity());
 		} else {
 			self.add_component(Clicked(false));
 			self.add_on_mouse_down(move |e| { e.prevent_default(); self.get_cmp_mut::<Clicked>().0 = true; });
-			self.get_cmp_mut_or_default::<Vec<_>>().push(window().on_mouse_up(move |_| self.get_cmp_mut::<Clicked>().0 = false));
+			self.get_cmp_mut_or_default::<Vec<_>>().push(window.on_mouse_up(move |_| self.get_cmp_mut::<Clicked>().0 = false));
 		}
 		self
 	}

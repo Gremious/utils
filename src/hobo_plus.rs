@@ -87,7 +87,7 @@ pub trait EleExt: Element {
 
 impl<T: Element> EleExt for T {}
 
-pub fn animation(mut f: impl FnMut(f64) -> bool + 'static) {
+pub fn animation(f: impl FnMut(f64) -> bool + 'static) {
 	animation_with_window(window(), f);
 }
 

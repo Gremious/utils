@@ -15,6 +15,7 @@ pub struct Flipped(pub bool);
 pub struct Clicked(pub bool);
 
 pub trait EleExt: Element {
+
 	// Another very common operation
 	// Removes 1 level of nested closures over with_component
 	// .with_component(|&element| FOO.subscribe(move |state| { ... -> .with_subscription(&FOO, move |&element, state| ...
@@ -71,6 +72,79 @@ pub trait EleExt: Element {
 
 	fn font(self, style: &css::Style) -> Self {
 		self.class_typed::<FontTag>(style.clone())
+	}
+
+	/// Auto-flips an element if it would be off-screen, by mirroring the top/bottom/left/right positional properties appropriately.
+	///
+	/// This also counts as setting the prefered position for the element, so you do not need to add it in a class/style yourself.
+	///
+	/// # Arguments
+	///
+	/// * `spacing_v` - A top or bottom property with the amount of spacing between the parent and child e.g. Some(css::top!(8 px))
+	/// * `spacing_h` - A left or right property with the amount of spacing between the parent and child e.g. Some(css::right!(36 px))
+	///
+	/// Note that it is not e.g. "100% + 8 px", but only the "margin".
+	///
+	/// Currently only px units are supported.
+	fn flip_if_offscreen(self, spacing_v: Option<css::Property>, spacing_h: Option<css::Property>) {
+		let parent = SomeElement(self.as_entity()).get_cmp::<hobo::Parent>().0;
+		let element_rect = self.get_cmp::<web_sys::HtmlElement>().get_bounding_client_rect();
+		let element_height = element_rect.bottom() - element_rect.top();
+		let element_width = element_rect.right() - element_rect.left();
+		let parent_rect = parent.get_cmp::<web_sys::HtmlElement>().get_bounding_client_rect();
+		let window_height = window().inner_height().unwrap().as_f64().unwrap();
+		let window_width = window().inner_width().unwrap().as_f64().unwrap();
+		let mut new_style = Vec::new();
+
+		if let Some(v) = spacing_v {
+			if let css::Property::Top(css::Dimension::Some(css::Unit::Px(f))) = v {
+				let vertical = f.into_inner() as f64;
+				let dimension = css::Dimension::Some(css::unit!(100% + vertical px));
+				let property = if parent_rect.bottom() + vertical + element_height > window_height {
+					css::Property::Bottom(dimension)
+				} else {
+					css::Property::Top(dimension)
+				};
+				new_style.push(property);
+			} else if let css::Property::Bottom(css::Dimension::Some(css::Unit::Px(f))) = v {
+				let vertical = f.into_inner() as f64;
+				let dimension = css::Dimension::Some(css::unit!(100% + vertical px));
+				let property = if parent_rect.top() - vertical - element_height < 0. {
+					css::Property::Top(dimension)
+				} else {
+					css::Property::Bottom(dimension)
+				};
+				new_style.push(property);
+			} else {
+				log::warn!("Flip on element with a non-pixel position! (or not top/bottom?)")
+			}
+		}
+
+		if let Some(h) = spacing_h {
+			if let css::Property::Left(css::Dimension::Some(css::Unit::Px(f))) = h {
+				let horizontal = f.into_inner() as f64;
+				let dimension = css::Dimension::Some(css::unit!(100% - horizontal px));
+				let property = if parent_rect.right() + horizontal + element_width > window_width {
+					css::Property::Right(dimension)
+				} else {
+					css::Property::Left(dimension)
+				};
+				new_style.push(property);
+			} else if let css::Property::Right(css::Dimension::Some(css::Unit::Px(f))) = h {
+				let horizontal = f.into_inner() as f64;
+				let dimension = css::Dimension::Some(css::unit!(100% - horizontal px));
+				let property = if parent_rect.left() - horizontal - element_width < 0. {
+					css::Property::Left(dimension)
+				} else {
+					css::Property::Right(dimension)
+				};
+				new_style.push(property);
+			} else {
+				log::warn!("Flip on element with a non-pixel position! (or not left/right?)")
+			}
+		}
+
+		self.set_style(new_style);
 	}
 }
 

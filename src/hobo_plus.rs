@@ -1,4 +1,9 @@
 use hobo::{enclose as e, prelude::*};
+pub use crate::__dbg;
+
+pub fn spawn_complain<T>(x: impl std::future::Future<Output = anyhow::Result<T>> + 'static) {
+	wasm_bindgen_futures::spawn_local(async move { if let Err(e) = x.await { log::error!("{:?}", e); } });
+}
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
 pub struct FontTag;
@@ -189,4 +194,23 @@ pub fn animation_with_window(window: web_sys::Window, mut f: impl FnMut(f64) -> 
 		}
 	})) as Box<dyn FnMut(f64) + 'static>));
 	window.request_animation_frame(cb.borrow().as_ref().unwrap().as_ref().unchecked_ref()).unwrap();
+}
+
+#[macro_export]
+macro_rules! __dbg {
+	() => {
+		log::info!("[{}:{}]", file!(), line!());
+	};
+	($val:expr) => {
+		match $val {
+			tmp => {
+				log::info!("[{}:{}] {} = {:#?}", file!(), line!(), stringify!($val), &tmp);
+				tmp
+			}
+		}
+	};
+	($val:expr,) => { $crate::dbg!($val) };
+	($($val:expr),+ $(,)?) => {
+		($($crate::dbg!($val)),+,)
+	};
 }

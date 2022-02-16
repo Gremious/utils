@@ -1,23 +1,28 @@
 [package]
 name = "grd-utils"
 version = "0.1.0"
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 anyhow = "1"
 async-trait = "0.1"
 chrono = { version = "0.4", features = ["serde"] }
+fehler = "1"
+futures = "0.3"
+hobo = { version = "0.2", optional = true }
+itertools = "0.10"
 log = "0.4"
 once_cell = "1"
 rand = "0.8"
 reqwest = { version = "0.11", features = ["gzip", "brotli", "json", "rustls-tls", "stream"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+shrinkwraprs = "0.3"
 smart-default = "0.6"
+sugars = "3"
 wasm-bindgen = { version = "0.2", features = ["nightly"], optional = true }
 wasm-bindgen-futures = { version = "0.4", optional = true }
 wasm-logger = { version = "0.2", optional = true }
-hobo = { version = "0.2", optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "*", features = ["js"] } # because of rand

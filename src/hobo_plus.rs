@@ -179,7 +179,7 @@ pub fn animation_with_window(window: web_sys::Window, mut f: impl FnMut(f64) -> 
 	// this weird refcelling is necessary for "recursion"
 	let cb = Rc::new(RefCell::new(None as Option<Closure<dyn FnMut(f64) + 'static>>));
 	let mut last_timestamp = None;
-	*cb.borrow_mut() = Some(Closure::wrap(Box::new(e!((cb, window) move |timestamp| {
+	*cb.borrow_mut() = Some(Closure::wrap(Box::new(hobo::enclose!((cb, window) move |timestamp| {
 		let last_timestamp = if let Some(x) = last_timestamp.as_mut() { x } else {
 			window.request_animation_frame(cb.borrow().as_ref().unwrap().as_ref().unchecked_ref()).unwrap();
 			last_timestamp = Some(timestamp);

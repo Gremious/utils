@@ -1,4 +1,4 @@
-use hobo::{enclose as e, prelude::*};
+use hobo::prelude::*;
 pub use crate::__dbg;
 
 pub fn spawn_complain<T>(x: impl std::future::Future<Output = anyhow::Result<T>> + 'static) {

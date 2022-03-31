@@ -47,9 +47,11 @@ pub trait EleExt: Element {
 	fn on_flip(self, mut f: impl FnMut(&Self, bool) + 'static) -> Self where Self: Sized + 'static + Copy {
 		if self.try_get_cmp::<Flipped>().is_none() { self.add_component(Flipped(false)); };
 		self.add_on_click(move |_| {
-			let mut state = self.get_cmp_mut::<Flipped>();
-			state.0 = !state.0;
-			f(&self, state.0);
+			let state = self.try_get_cmp_mut::<Flipped>();
+			if let Some(mut state) = state {
+				state.0 = !state.0;
+				f(&self, state.0);
+			}
 		});
 		self
 	}
@@ -83,7 +85,7 @@ pub trait EleExt: Element {
 	/// This will panic at runtime if the `Clicked` component is not present.
 	/// Make sure to actually call report_clicked() on the element first.
 	fn clicked(self) -> bool {
-		self.get_cmp::<Clicked>().0
+		self.try_get_cmp::<Clicked>().and_then(|x| Some(x.0)).unwrap_or(false)
 	}
 
 	fn font(self, style: &css::Style) -> Self {
@@ -180,6 +182,7 @@ pub fn animation_with_window(window: web_sys::Window, mut f: impl FnMut(f64) -> 
 	let cb = Rc::new(RefCell::new(None as Option<Closure<dyn FnMut(f64) + 'static>>));
 	let mut last_timestamp = None;
 	*cb.borrow_mut() = Some(Closure::wrap(Box::new(hobo::enclose!((cb, window) move |timestamp| {
+		if window.closed().unwrap_or(true) { let _drop = cb.borrow_mut().take(); return; }
 		let last_timestamp = if let Some(x) = last_timestamp.as_mut() { x } else {
 			window.request_animation_frame(cb.borrow().as_ref().unwrap().as_ref().unchecked_ref()).unwrap();
 			last_timestamp = Some(timestamp);

@@ -3,10 +3,11 @@ pub trait LogIfError {
 }
 
 impl<T, E: std::fmt::Debug> LogIfError for anyhow::Result<T, E> {
+	#[track_caller]
 	fn log_if_err(self) -> Self {
 		match &self {
 			Ok(_) => {},
-			Err(e) => log::error!("Error: {:?}", e),
+			Err(e) => log::error!("{} Error: {:?}", std::panic::Location::caller(), e),
 		}
 		self
 	}

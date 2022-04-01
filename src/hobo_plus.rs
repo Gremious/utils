@@ -164,6 +164,16 @@ pub trait EleExt: Element {
 
 		self.set_style(new_style);
 	}
+
+	fn hide_signal<S>(self, signal: S) -> Self where
+		S: futures_signals::signal::Signal<Item=bool> + 'static,
+		Self: 'static + Copy,
+	{
+		self.component_collection(signal.map(move |x| if x { self.set_style(css::display!(none)) } else { self.remove_style() }));
+		self
+	}
+
+	fn component_collection<C: 'static>(&self, x: C) { self.get_cmp_mut_or_default::<Vec<C>>().push(x) }
 }
 
 impl<T: Element> EleExt for T {}

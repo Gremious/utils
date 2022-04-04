@@ -1,5 +1,6 @@
 use hobo::prelude::*;
 pub use crate::__dbg;
+use futures_signals::signal::SignalExt;
 
 pub fn spawn_complain<T>(x: impl std::future::Future<Output = anyhow::Result<T>> + 'static) {
 	wasm_bindgen_futures::spawn_local(async move { if let Err(e) = x.await { log::error!("{:?}", e); } });

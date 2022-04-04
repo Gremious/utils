@@ -9,6 +9,7 @@ async-trait = "0.1"
 chrono = { version = "0.4", features = ["serde"] }
 fehler = "1"
 futures = "0.3"
+futures-signals = "0.3"
 hobo = { version = "0.2", optional = true }
 itertools = "0.10"
 log = "0.4"

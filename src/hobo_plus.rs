@@ -170,7 +170,7 @@ pub trait EleExt: Element {
 		S: futures_signals::signal::Signal<Item=bool> + 'static,
 		Self: 'static + Copy,
 	{
-		self.component_collection(signal.map(move |x| if x { self.set_style(css::display!(none)) } else { self.remove_style() }));
+		self.component_collection(signal.subscribe(move |x| if x { self.set_style(css::display!(none)) } else { self.remove_style() }));
 		self
 	}
 

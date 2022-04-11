@@ -37,7 +37,7 @@ impl ReqwestWasmResponseExt for reqwest::Response {
 	}
 }
 
-pub mod chrono_duration_serde {
+pub mod chrono_duration {
 	use serde::{Deserialize, Serialize};
 	pub fn deserialize<'de, D: serde::Deserializer<'de>>(deserializer: D) -> Result<chrono::Duration, D::Error> {
 		Ok(chrono::Duration::seconds(i64::deserialize(deserializer)?))
@@ -47,12 +47,28 @@ pub mod chrono_duration_serde {
 	}
 }
 
-pub mod opt_chrono_duration_serde {
+pub mod opt_chrono_duration {
 	use serde::{Deserialize, Serialize};
 	pub fn deserialize<'de, D: serde::Deserializer<'de>>(deserializer: D) -> Result<Option<chrono::Duration>, D::Error> {
 		Ok(<Option<i64>>::deserialize(deserializer)?.map(chrono::Duration::seconds))
 	}
 	pub fn serialize<S: serde::Serializer>(value: &Option<chrono::Duration>, serializer: S) -> Result<S::Ok, S::Error> {
 		<Option<i64>>::serialize(&value.map(|x| x.num_seconds()), serializer)
+	}
+}
+
+pub fn string_or_number<'de, D: serde::Deserializer<'de>>(d: D) -> Result<u64, D::Error> {
+	use serde::{Deserialize, de::Error};
+
+	#[derive(Deserialize)]
+	#[serde(untagged)]
+	enum Value {
+		String(String),
+		U64(u64),
+	}
+
+	match Value::deserialize(d)? {
+		Value::String(x) => x.parse::<u64>().map_err(|e| D::Error::custom(e.to_string())),
+		Value::U64(x) => Ok(x),
 	}
 }

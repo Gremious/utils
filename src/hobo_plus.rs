@@ -1,5 +1,6 @@
 use hobo::prelude::*;
 pub use crate::__dbg;
+use futures_signals::signal::SignalExt;
 
 #[track_caller]
 pub fn spawn_complain<T>(x: impl std::future::Future<Output = anyhow::Result<T>> + 'static) {
@@ -14,11 +15,11 @@ pub fn window() -> web_sys::Window { web_sys::window().expect("no window") }
 pub fn document() -> web_sys::Document { window().document().expect("no document") }
 
 /// Generic `bool` component for on-click state-switch-like events
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub struct Flipped(pub bool);
 
 /// Allows you to tell whether it is currently being clicked on (mousedown active).
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub struct Clicked(pub bool);
 
 pub trait EleExt: Element {
@@ -166,6 +167,16 @@ pub trait EleExt: Element {
 
 		self.set_style(new_style);
 	}
+
+	fn hide_signal<S>(self, signal: S) -> Self where
+		S: futures_signals::signal::Signal<Item=bool> + 'static,
+		Self: 'static + Copy,
+	{
+		self.component_collection(signal.subscribe(move |x| if x { self.set_style(css::display!(none)) } else { self.remove_style() }));
+		self
+	}
+
+	fn component_collection<C: 'static>(&self, x: C) { self.get_cmp_mut_or_default::<Vec<C>>().push(x) }
 }
 
 impl<T: Element> EleExt for T {}

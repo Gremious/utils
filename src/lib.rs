@@ -16,10 +16,14 @@ pub fn spawn_complain_send<T>(x: impl std::future::Future<Output = anyhow::Resul
 #[must_use]
 pub fn default<T: Default>() -> T { T::default() }
 
+fn one_hour() -> i64 { 3600 }
+
 #[derive(Debug, Serialize, Deserialize, Clone, smart_default::SmartDefault, PartialEq, Eq, Hash)]
 pub struct OauthToken {
+	#[serde(default = "one_hour")]
 	pub expires_in: i64,
 	pub access_token: String,
+	pub refresh_token: Option<String>,
 	#[default(chrono::Utc::now())]
 	#[serde(default = "chrono::Utc::now")]
 	pub created_at: chrono::DateTime<chrono::Utc>,

@@ -174,7 +174,8 @@ pub trait EleExt: Element {
 		self
 	}
 
-	fn component_collection<C: 'static>(&self, x: C) { self.get_cmp_mut_or_default::<Vec<C>>().push(x) }
+	fn component_collection<C: 'static>(self, x: C) -> Self { self.set_component_collection(x); self }
+	fn set_component_collection<C: 'static>(&self, x: C) { self.get_cmp_mut_or_default::<Vec<C>>().push(x) }
 }
 
 impl<T: Element> EleExt for T {}

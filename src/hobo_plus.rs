@@ -179,15 +179,17 @@ pub trait EleExt: Element {
 
 	fn set_component_collection<C: 'static>(&self, x: C) { self.get_cmp_mut_or_default::<Vec<C>>().push(x) }
 
-	/// Provides a closure which triggers on mouse move, only while the element is clicked.
-	/// It captures the element, and a normalized f32 indicating where the mouse currently is.
+	/// The chaining counterpart of [set_on_slide](Self::set_on_slide).
+	/// See [set_on_slide](Self::set_on_slide) for details.
 	fn on_slide(self, mut f: impl FnMut(&Self, f32) + 'static) -> Self where Self: Sized + 'static + Copy {
 		self.set_on_slide(f);
 		self
 	}
 
 	/// Provides a closure which triggers on mouse move, only while the element is clicked.
-	/// It captures the element, and a normalized f32 indicating where the mouse currently is.
+	/// It captures the element, and a normalized `f32` indicating where the mouse currently is.
+	///
+	/// This is a non-chaining function. For the chaining counterpart, see [on_slide](Self::on_slide).
 	fn set_on_slide(self, mut f: impl FnMut(&Self, f32) + 'static) where Self: Sized + 'static + Copy {
 		self
 			.report_clicked()

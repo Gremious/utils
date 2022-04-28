@@ -181,16 +181,16 @@ pub trait EleExt: Element {
 
 	/// The chaining counterpart of [set_on_slide](Self::set_on_slide).
 	/// See [set_on_slide](Self::set_on_slide) for details.
-	fn on_slide(self, mut f: impl FnMut(&Self, f32) + 'static) -> Self where Self: Sized + 'static + Copy {
+	fn on_slide(self, mut f: impl FnMut(f32) + 'static) -> Self where Self: Sized + 'static + Copy {
 		self.set_on_slide(f);
 		self
 	}
 
 	/// Provides a closure which triggers on mouse move, only while the element is clicked.
-	/// It captures the element, and a normalized `f32` indicating where the mouse currently is.
+	/// It captures a normalized `f32` which indicates where the mouse currently is on the element.
 	///
 	/// This is a non-chaining function. For the chaining counterpart, see [on_slide](Self::on_slide).
-	fn set_on_slide(self, mut f: impl FnMut(&Self, f32) + 'static) where Self: Sized + 'static + Copy {
+	fn set_on_slide(self, mut f: impl FnMut(f32) + 'static) where Self: Sized + 'static + Copy {
 		self
 			.report_clicked()
 			.set_component_collection(window().on_mouse_move(move |event: web_sys::MouseEvent| {
@@ -200,7 +200,7 @@ pub trait EleExt: Element {
 				let left = container_element.get_bounding_client_rect().x() as f32;
 				let width = container_element.client_width() as f32;
 				let position = f32::clamp((mouse_x - left) / width, 0.0, 1.0);
-				f(&self, position);
+				f(position);
 			}));
 	}
 }

@@ -75,8 +75,7 @@ pub trait EleExt: Element {
 	/// See: `clicked()`
 	fn report_clicked_on_window(self, window: web_sys::Window) -> Self where Self: Sized + 'static + Copy {
 		if self.try_get_cmp::<Clicked>().is_some() {
-			// wish i could compile_error here tbh
-			log::warn!("Element already has the Clicked component. Did you accidentally call report_clicked() twice? {:#?}", self.as_entity());
+			return self;
 		} else {
 			self.add_component(Clicked(false));
 			self.add_on_mouse_down(move |e| { e.prevent_default(); self.get_cmp_mut::<Clicked>().0 = true; });
@@ -177,7 +176,31 @@ pub trait EleExt: Element {
 	}
 
 	fn component_collection<C: 'static>(self, x: C) -> Self { self.set_component_collection(x); self }
+
 	fn set_component_collection<C: 'static>(&self, x: C) { self.get_cmp_mut_or_default::<Vec<C>>().push(x) }
+
+	/// Provides a closure which triggers on mouse move, only while the element is clicked.
+	/// It captures the element, and a normalized f32 indicating where the mouse currently is.
+	fn on_slide(self, mut f: impl FnMut(&Self, f32) + 'static) -> Self where Self: Sized + 'static + Copy {
+		self.set_on_slide(f);
+		self
+	}
+
+	/// Provides a closure which triggers on mouse move, only while the element is clicked.
+	/// It captures the element, and a normalized f32 indicating where the mouse currently is.
+	fn set_on_slide(self, mut f: impl FnMut(&Self, f32) + 'static) where Self: Sized + 'static + Copy {
+		self
+			.report_clicked()
+			.set_component_collection(window().on_mouse_move(move |event: web_sys::MouseEvent| {
+				if !self.clicked() { return; }
+				let mouse_x = event.client_x() as f32; // Current mouse position
+				let container_element = self.get_cmp::<web_sys::Element>();
+				let left = container_element.get_bounding_client_rect().x() as f32;
+				let width = container_element.client_width() as f32;
+				let position = f32::clamp((mouse_x - left) / width, 0.0, 1.0);
+				f(&self, position);
+			}));
+	}
 }
 
 impl<T: Element> EleExt for T {}

@@ -2,8 +2,10 @@ use hobo::prelude::*;
 pub use crate::__dbg;
 use futures_signals::signal::SignalExt;
 
+#[track_caller]
 pub fn spawn_complain<T>(x: impl std::future::Future<Output = anyhow::Result<T>> + 'static) {
-	wasm_bindgen_futures::spawn_local(async move { if let Err(e) = x.await { log::error!("{:?}", e); } });
+	let caller = std::panic::Location::caller();
+	wasm_bindgen_futures::spawn_local(async move { if let Err(e) = x.await { log::error!("{} {:?}", caller, e); } });
 }
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]

@@ -2,6 +2,7 @@
 pub mod error;
 pub mod serde_utils;
 pub mod common_prelude;
+pub mod rkyv_shims;
 
 use once_cell::sync::Lazy;
 use serde::{Serialize, Deserialize};
@@ -16,10 +17,15 @@ pub fn spawn_complain_send<T>(x: impl std::future::Future<Output = anyhow::Resul
 #[must_use]
 pub fn default<T: Default>() -> T { T::default() }
 
-#[derive(Debug, Serialize, Deserialize, Clone, smart_default::SmartDefault, PartialEq, Eq, Hash)]
+fn one_hour() -> i64 { 3600 }
+
+#[derive(Debug, Serialize, Deserialize, Clone, smart_default::SmartDefault, PartialEq, Eq, Hash, rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)]
 pub struct OauthToken {
+	#[serde(default = "one_hour")]
 	pub expires_in: i64,
 	pub access_token: String,
+	pub refresh_token: Option<String>,
+	#[with(rkyv_shims::ChronoDateTimeUtc)]
 	#[default(chrono::Utc::now())]
 	#[serde(default = "chrono::Utc::now")]
 	pub created_at: chrono::DateTime<chrono::Utc>,

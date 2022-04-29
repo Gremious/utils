@@ -27,7 +27,7 @@ pub trait EleExt: Element {
 	// Another very common operation
 	// Removes 1 level of nested closures over with_component
 	// .with_component(|&element| FOO.subscribe(move |state| { ... -> .with_subscription(&FOO, move |&element, state| ...
-	fn with_subscription<T: 'static>(self, state: &state::State<T>, mut f: impl FnMut(&Self, &T) + 'static) -> Self where Self: Sized + 'static + Copy {
+	fn with_subscription<T: 'static>(self, state: &state::State<T>, mut f: impl FnMut(&Self, &T) + 'static) -> Self where Self: Sized + Copy + 'static {
 		self.add_component(state.subscribe(move |state_val| f(&self, state_val)));
 		self
 	}
@@ -47,7 +47,7 @@ pub trait EleExt: Element {
 	/// On click, flips a `BoolState` component in the given element and executes a passed-in closure.
 	///
 	/// Closure parameters are `self`, and the already flipped state `bool`
-	fn on_flip(self, mut f: impl FnMut(&Self, bool) + 'static) -> Self where Self: Sized + 'static + Copy {
+	fn on_flip(self, mut f: impl FnMut(&Self, bool) + 'static) -> Self where Self: Sized + Copy + 'static {
 		if self.try_get_cmp::<Flipped>().is_none() { self.add_component(Flipped(false)); };
 		self.add_on_click(move |_| {
 			let state = self.try_get_cmp_mut::<Flipped>();
@@ -64,7 +64,7 @@ pub trait EleExt: Element {
 	/// Uses the default window (e.g. [web_sys::window()])
 	///
 	/// See: `clicked()`
-	fn report_clicked(self) -> Self where Self: Sized + 'static + Copy {
+	fn report_clicked(self) -> Self where Self: Sized + Copy + 'static {
 		self.report_clicked_on_window(window())
 	}
 
@@ -73,7 +73,7 @@ pub trait EleExt: Element {
 	/// Uses the passed in [web_sys::Window]
 	///
 	/// See: `clicked()`
-	fn report_clicked_on_window(self, window: web_sys::Window) -> Self where Self: Sized + 'static + Copy {
+	fn report_clicked_on_window(self, window: web_sys::Window) -> Self where Self: Sized + Copy + 'static {
 		if self.try_get_cmp::<Clicked>().is_some() {
 			return self;
 		} else {
@@ -181,7 +181,7 @@ pub trait EleExt: Element {
 
 	/// The chaining counterpart of [set_on_slide](Self::set_on_slide).
 	/// See [set_on_slide](Self::set_on_slide) for details.
-	fn on_slide(self, mut f: impl FnMut(f32) + 'static) -> Self where Self: Sized + 'static + Copy {
+	fn on_slide(self, mut f: impl FnMut(f32) + 'static) -> Self where Self: Sized + Copy + 'static {
 		self.set_on_slide(f);
 		self
 	}
@@ -190,7 +190,7 @@ pub trait EleExt: Element {
 	/// It captures a normalized `f32` which indicates where the mouse currently is on the element.
 	///
 	/// This is a non-chaining function. For the chaining counterpart, see [on_slide](Self::on_slide).
-	fn set_on_slide(self, mut f: impl FnMut(f32) + 'static) where Self: Sized + 'static + Copy {
+	fn set_on_slide(self, mut f: impl FnMut(f32) + 'static) where Self: Sized + Copy + 'static{
 		self
 			.report_clicked()
 			.set_component_collection(window().on_mouse_move(move |event: web_sys::MouseEvent| {

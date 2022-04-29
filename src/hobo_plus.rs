@@ -179,8 +179,7 @@ pub trait EleExt: Element {
 
 	fn set_component_collection<C: 'static>(&self, x: C) { self.get_cmp_mut_or_default::<Vec<C>>().push(x) }
 
-	/// The chaining counterpart of [set_on_slide](Self::set_on_slide).
-	/// See [set_on_slide](Self::set_on_slide) for details.
+	/// The chaining counterpart of [set_on_slide](Self::set_on_slide), see it for more details.
 	fn on_slide(self, mut f: impl FnMut(f32) + 'static) -> Self where Self: Sized + Copy + 'static {
 		self.set_on_slide(f);
 		self
@@ -202,6 +201,28 @@ pub trait EleExt: Element {
 				let position = f32::clamp((mouse_x - left) / width, 0.0, 1.0);
 				f(position);
 			}));
+	}
+
+	/// The chaining counterpart of [set_on_first_flow](Self::set_on_first_flow), see it for more details.
+	fn on_next_flow(self, mut f: impl FnOnce() + 'static) -> Self where Self: Sized + Copy + 'static {
+		self.set_on_next_flow(f);
+		self
+	}
+
+	/// Provides a closure which triggers once, immediately on the next reflow completes.
+	///
+	/// In practice, when creating an element with `.on_next_flow(|| ... )`,
+	/// it will trigger immediately after the page's first flow.
+	///
+	/// However, if used in conjunction with a function that is called multiple times, e.g.
+	/// ```
+	/// 	window().on_resize(move |_| element.set_on_next_flow(|| /* ... */ ))
+	/// ```
+	/// it will re-trigger after each reflow.
+	///
+	/// This is a non-chaining function. For the chaining counterpart, see [on_first_flow](Self::on_first_flow).
+	fn set_on_next_flow(self, mut f: impl FnOnce() + 'static) where Self: Sized + Copy + 'static {
+		window().request_animation_frame(Closure::once_into_js(f).unchecked_ref()).unwrap();
 	}
 }
 

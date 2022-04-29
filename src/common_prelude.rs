@@ -17,3 +17,5 @@ pub use smart_default::SmartDefault;
 pub use shrinkwraprs::Shrinkwrap;
 pub use chrono::{Datelike as _, TimeZone as _, Timelike as _};
 pub use rand::prelude::*;
+pub use tap::prelude::*;
+pub use crate::default;

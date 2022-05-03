@@ -1,6 +1,5 @@
 use hobo::prelude::*;
 pub use crate::__dbg;
-use futures_signals::signal::SignalExt;
 
 #[track_caller]
 pub fn spawn_complain<T>(x: impl std::future::Future<Output = anyhow::Result<T>> + 'static) {
@@ -180,7 +179,7 @@ pub trait EleExt: Element {
 	fn set_component_collection<C: 'static>(&self, x: C) { self.get_cmp_mut_or_default::<Vec<C>>().push(x) }
 
 	/// The chaining counterpart of [set_on_slide](Self::set_on_slide), see it for more details.
-	fn on_slide(self, mut f: impl FnMut(f32) + 'static) -> Self where Self: Sized + Copy + 'static {
+	fn on_slide(self, f: impl FnMut(f32) + 'static) -> Self where Self: Sized + Copy + 'static {
 		self.set_on_slide(f);
 		self
 	}
@@ -204,7 +203,7 @@ pub trait EleExt: Element {
 	}
 
 	/// The chaining counterpart of [set_on_first_flow](Self::set_on_first_flow), see it for more details.
-	fn on_next_flow(self, mut f: impl FnOnce() + 'static) -> Self where Self: Sized + Copy + 'static {
+	fn on_next_flow(self, f: impl FnOnce() + 'static) -> Self where Self: Sized + Copy + 'static {
 		self.set_on_next_flow(f);
 		self
 	}
@@ -221,7 +220,7 @@ pub trait EleExt: Element {
 	/// it will re-trigger after each reflow.
 	///
 	/// This is a non-chaining function. For the chaining counterpart, see [on_first_flow](Self::on_first_flow).
-	fn set_on_next_flow(self, mut f: impl FnOnce() + 'static) where Self: Sized + Copy + 'static {
+	fn set_on_next_flow(self, f: impl FnOnce() + 'static) where Self: Sized + Copy + 'static {
 		window().request_animation_frame(Closure::once_into_js(f).unchecked_ref()).unwrap();
 	}
 }

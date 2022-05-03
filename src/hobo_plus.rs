@@ -208,7 +208,7 @@ pub trait EleExt: Element {
 		self
 	}
 
-	/// Provides a closure which triggers once, immediately on the next reflow completes.
+	/// Provides a closure which triggers once, after the next reflow completes.
 	///
 	/// In practice, when creating an element with `.on_next_flow(|| ... )`,
 	/// it will trigger immediately after the page's first flow.

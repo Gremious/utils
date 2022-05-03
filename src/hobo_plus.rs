@@ -178,7 +178,7 @@ pub trait EleExt: Element {
 
 	fn set_component_collection<C: 'static>(&self, x: C) { self.get_cmp_mut_or_default::<Vec<C>>().push(x) }
 
-	/// The chaining counterpart of [set_on_slide](Self::set_on_slide), see it for more details.
+	/// The chaining counterpart of [set_on_slide](Self::set_on_slide).
 	fn on_slide(self, f: impl FnMut(f32) + 'static) -> Self where Self: Sized + Copy + 'static {
 		self.set_on_slide(f);
 		self
@@ -202,7 +202,7 @@ pub trait EleExt: Element {
 			}));
 	}
 
-	/// The chaining counterpart of [set_on_first_flow](Self::set_on_first_flow), see it for more details.
+	/// The chaining counterpart of [set_on_first_flow](Self::set_on_first_flow).
 	fn on_next_flow(self, f: impl FnOnce() + 'static) -> Self where Self: Sized + Copy + 'static {
 		self.set_on_next_flow(f);
 		self

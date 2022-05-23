@@ -180,7 +180,7 @@ pub trait EleExt: Element {
 
 	/// The chaining counterpart of [set_on_slide](Self::set_on_slide).
 	fn on_slide(self, f: impl FnMut(f32) + 'static) -> Self where Self: Sized + Copy + 'static {
-		self.set_on_slide(f);
+		self.add_on_slide(f);
 		self
 	}
 
@@ -188,7 +188,7 @@ pub trait EleExt: Element {
 	/// It captures a normalized `f32` which indicates where the mouse currently is on the element.
 	///
 	/// This is a non-chaining function. For the chaining counterpart, see [on_slide](Self::on_slide).
-	fn set_on_slide(self, mut f: impl FnMut(f32) + 'static) where Self: Sized + Copy + 'static{
+	fn add_on_slide(self, mut f: impl FnMut(f32) + 'static) where Self: Sized + Copy + 'static{
 		self
 			.report_clicked()
 			.set_component_collection(window().on_mouse_move(move |event: web_sys::MouseEvent| {

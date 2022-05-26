@@ -3,6 +3,9 @@ pub mod error;
 pub mod serde_utils;
 pub mod common_prelude;
 pub mod rkyv_shims;
+pub mod duration;
+
+pub use duration::Duration;
 
 use once_cell::sync::Lazy;
 use serde::{Serialize, Deserialize};

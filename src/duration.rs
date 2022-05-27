@@ -34,6 +34,20 @@ impl Duration {
 	pub fn mmss(&self) -> String { format!("{:02}:{:02}", self.num_minutes(), self.num_seconds() % 60) }
 }
 
+impl hhmmss::Hhmmss for Duration {
+	fn sms(&self) -> (i64, i64) {
+		<chrono::Duration as hhmmss::Hhmmss>::sms(self)
+	}
+}
+
+impl std::ops::Mul<f32> for Duration {
+	type Output = Self;
+
+	fn mul(self, rhs: f32) -> Self::Output {
+		Self::seconds_f32(self.as_seconds_f32() * rhs)
+	}
+}
+
 impl rkyv::Archive for Duration {
 	type Archived = Duration;
 	type Resolver = ((), ());

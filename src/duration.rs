@@ -30,6 +30,8 @@ impl Duration {
 	pub fn as_seconds_f64(&self) -> f64 { self.num_milliseconds() as f64 / 1000. }
 	pub fn seconds_f32(secs: f32) -> Self { Self(chrono::Duration::milliseconds(f32::round(secs * 1000.) as _)) }
 	pub fn seconds_f64(secs: f64) -> Self { Self(chrono::Duration::milliseconds(f64::round(secs * 1000.) as _)) }
+
+	pub fn mmss(&self) -> String { format!("{:02}:{:02}", self.num_minutes(), self.num_seconds() % 60) }
 }
 
 impl rkyv::Archive for Duration {

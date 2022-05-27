@@ -17,6 +17,14 @@ pub struct Duration(
 
 impl Duration {
 	pub fn zero() -> Self { Self::default() }
+	#[inline] pub fn weeks(weeks: i64) -> Self { chrono::Duration::weeks(weeks).into() }
+	#[inline] pub fn days(days: i64) -> Self { chrono::Duration::days(days).into() }
+	#[inline] pub fn hours(hours: i64) -> Self { chrono::Duration::hours(hours).into() }
+	#[inline] pub fn minutes(minutes: i64) -> Self { chrono::Duration::minutes(minutes).into() }
+	#[inline] pub fn seconds(seconds: i64) -> Self { chrono::Duration::seconds(seconds).into() }
+	#[inline] pub fn milliseconds(milliseconds: i64) -> Self { chrono::Duration::milliseconds(milliseconds).into() }
+	#[inline] pub fn microseconds(microseconds: i64) -> Self { chrono::Duration::microseconds(microseconds).into() }
+	#[inline] pub fn nanoseconds(nanoseconds: i64) -> Self { chrono::Duration::nanoseconds(nanoseconds).into() }
 
 	pub fn as_seconds_f32(&self) -> f32 { self.num_milliseconds() as f32 / 1000. }
 	pub fn as_seconds_f64(&self) -> f64 { self.num_milliseconds() as f64 / 1000. }

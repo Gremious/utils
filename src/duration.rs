@@ -8,11 +8,13 @@
 	derive_more::Display,
 	derive_more::Add, derive_more::Sub,
 	derive_more::From, derive_more::Into,
+
 )]
+#[repr(transparent)]
 pub struct Duration(
 	#[serde(with = "crate::serde_utils::chrono_duration")]
 	#[default(chrono::Duration::zero())]
-	chrono::Duration
+	chrono::Duration,
 );
 
 impl Duration {
@@ -26,8 +28,21 @@ impl Duration {
 	#[inline] pub fn microseconds(microseconds: i64) -> Self { chrono::Duration::microseconds(microseconds).into() }
 	#[inline] pub fn nanoseconds(nanoseconds: i64) -> Self { chrono::Duration::nanoseconds(nanoseconds).into() }
 
-	pub fn as_seconds_f32(&self) -> f32 { self.num_milliseconds() as f32 / 1000. }
-	pub fn as_seconds_f64(&self) -> f64 { self.num_milliseconds() as f64 / 1000. }
+	pub fn as_seconds_f32(&self) -> f32 {
+		let secs = self.num_seconds();
+		let dur = Self::seconds(secs);
+		let nanos = *self - dur;
+		let nanos = nanos.num_nanoseconds().unwrap();
+        secs as f32 + nanos as f32 * 1_000_000_000.
+	}
+
+	pub fn as_seconds_f64(&self) -> f64 {
+		let secs = self.num_seconds();
+		let dur = Self::seconds(secs);
+		let nanos = *self - dur;
+		let nanos = nanos.num_nanoseconds().unwrap();
+        secs as f64 + nanos as f64 * 1_000_000_000.
+    }
 	pub fn seconds_f32(secs: f32) -> Self { Self(chrono::Duration::milliseconds(f32::round(secs * 1000.) as _)) }
 	pub fn seconds_f64(secs: f64) -> Self { Self(chrono::Duration::milliseconds(f64::round(secs * 1000.) as _)) }
 

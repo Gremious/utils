@@ -33,7 +33,7 @@ impl Duration {
 		let dur = Self::seconds(secs);
 		let nanos = *self - dur;
 		let nanos = nanos.num_nanoseconds().unwrap();
-        secs as f32 + nanos as f32 * 1_000_000_000.
+        secs as f32 + nanos as f32 / 1_000_000_000.
 	}
 
 	pub fn as_seconds_f64(&self) -> f64 {
@@ -41,7 +41,7 @@ impl Duration {
 		let dur = Self::seconds(secs);
 		let nanos = *self - dur;
 		let nanos = nanos.num_nanoseconds().unwrap();
-        secs as f64 + nanos as f64 * 1_000_000_000.
+        secs as f64 + nanos as f64 / 1_000_000_000.
     }
 	pub fn seconds_f32(secs: f32) -> Self { Self(chrono::Duration::milliseconds(f32::round(secs * 1000.) as _)) }
 	pub fn seconds_f64(secs: f64) -> Self { Self(chrono::Duration::milliseconds(f64::round(secs * 1000.) as _)) }

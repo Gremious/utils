@@ -14,8 +14,8 @@ use clipboard::ClipboardProvider;
 use clipboard::ClipboardContext;
 
 fn main() {
-    let mut clipboard: ClipboardContext = ClipboardProvider::new().unwrap();
-    let clipboard_content = clipboard.get_contents().unwrap();
+	let mut clipboard: ClipboardContext = ClipboardProvider::new().unwrap();
+	let clipboard_content = clipboard.get_contents().unwrap();
 	let mut new_clipboard_content = String::new();
 
 	for line in clipboard_content.lines() {
@@ -40,5 +40,5 @@ fn main() {
 		}
 	}
 
-    clipboard.set_contents(new_clipboard_content).unwrap();
+	clipboard.set_contents(new_clipboard_content).unwrap();
 }

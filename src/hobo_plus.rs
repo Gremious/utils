@@ -188,7 +188,7 @@ pub trait EleExt: Element {
 	/// It captures a normalized `f32` which indicates where the mouse currently is on the element.
 	///
 	/// This is a non-chaining function. For the chaining counterpart, see [on_slide](Self::on_slide).
-	fn add_on_slide(self, mut f: impl FnMut(f32) + 'static) where Self: Sized + Copy + 'static{
+	fn add_on_slide(self, mut f: impl FnMut(f32) + 'static) where Self: Sized + Copy + 'static {
 		self
 			.report_clicked()
 			.set_component_collection(window().on_mouse_move(move |event: web_sys::MouseEvent| {
@@ -200,6 +200,10 @@ pub trait EleExt: Element {
 				let position = f32::clamp((mouse_x - left) / width, 0.0, 1.0);
 				f(position);
 			}));
+	}
+
+	fn with_on_slide(self, mut f: impl FnMut(&Self, f32) + 'static) -> Self where Self: Sized + Copy + 'static {
+		self.on_slide(move |e| f(&self, e))
 	}
 
 	/// The chaining counterpart of [set_on_first_flow](Self::set_on_first_flow).

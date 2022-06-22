@@ -21,16 +21,7 @@ pub struct Flipped(pub bool);
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub struct Clicked(pub bool);
 
-pub trait EleExt: Element {
-
-	// Another very common operation
-	// Removes 1 level of nested closures over with_component
-	// .with_component(|&element| FOO.subscribe(move |state| { ... -> .with_subscription(&FOO, move |&element, state| ...
-	fn with_subscription<T: 'static>(self, state: &state::State<T>, mut f: impl FnMut(&Self, &T) + 'static) -> Self where Self: Sized + Copy + 'static {
-		self.add_component(state.subscribe(move |state_val| f(&self, state_val)));
-		self
-	}
-
+pub trait EleExt: AsElement {
 	/// Adds an `data-name` attribute to the element with a value of T
 	fn name_typed<T: 'static>(self) -> Self {
 		if self.is_dead() { log::warn!("mark dead {:?}", self.as_entity()); return self; }
@@ -106,7 +97,7 @@ pub trait EleExt: Element {
 	///
 	/// Currently only px units are supported.
 	fn flip_if_offscreen(self, spacing_v: Option<css::Property>, spacing_h: Option<css::Property>) {
-		let parent = SomeElement(self.as_entity()).get_cmp::<hobo::Parent>().0;
+		let parent = Element(self.as_entity()).get_cmp::<hobo::Parent>().0;
 		let element_rect = self.get_cmp::<web_sys::HtmlElement>().get_bounding_client_rect();
 		let element_height = element_rect.bottom() - element_rect.top();
 		let element_width = element_rect.right() - element_rect.left();
@@ -229,7 +220,7 @@ pub trait EleExt: Element {
 	}
 }
 
-impl<T: Element> EleExt for T {}
+impl<T: AsElement> EleExt for T {}
 
 pub fn animation(f: impl FnMut(f64) -> bool + 'static) {
 	animation_with_window(window(), f);

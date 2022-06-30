@@ -14,8 +14,20 @@ use serde::{Serialize, Deserialize};
 pub static REQWEST_CLIENT: Lazy<reqwest::Client> = Lazy::new(reqwest::Client::new);
 
 #[cfg(not(target_arch = "wasm32"))]
+#[track_caller]
 pub fn spawn_complain_send<T>(x: impl std::future::Future<Output = anyhow::Result<T>> + Send + 'static) {
-	tokio::spawn(async move { if let Err(e) = x.await { log::error!("{:?}", e); } });
+	let caller = core::panic::Location::caller();
+	tokio::spawn(async move { if let Err(e) = x.await {
+		let lvl = log::Level::Error;
+		if lvl <= log::STATIC_MAX_LEVEL && lvl <= log::max_level() {
+			log::__private_api_log(
+				log::__log_format_args!("{:?}", e),
+				lvl,
+				&(log::__log_module_path!(), log::__log_module_path!(), caller.file(), caller.line()),
+				log::__private_api::Option::None,
+			);
+		}
+	} });
 }
 
 #[must_use]

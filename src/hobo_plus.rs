@@ -79,7 +79,7 @@ pub trait EleExt: AsElement {
 		} else {
 			self.add_component(Clicked(false));
 			self.add_on_mouse_down(move |e| { e.prevent_default(); self.get_cmp_mut::<Clicked>().0 = true; });
-			self.get_cmp_mut_or_default::<Vec<_>>().push(window.on_mouse_up(move |_| self.get_cmp_mut::<Clicked>().0 = false));
+			self.component_collection(window.on_mouse_up(move |_| self.get_cmp_mut::<Clicked>().0 = false));
 		}
 		self
 	}
@@ -228,6 +228,77 @@ pub trait EleExt: AsElement {
 	fn set_on_next_flow(self, f: impl FnOnce() + 'static) where Self: Sized + Copy + 'static {
 		window().request_animation_frame(Closure::once_into_js(f).unchecked_ref()).unwrap();
 	}
+
+	/// The chaining counterpart of [set_on_infinite_scroll](Self::set_on_infinite_scroll).
+	fn on_infinite_scroll(
+			self,
+			observed_element: impl hobo::AsEntity,
+			f: impl FnMut(Vec<web_sys::IntersectionObserverEntry>) + 'static
+		) -> Self where Self: Copy + 'static {
+
+		self.set_on_infinite_scroll(observed_element, f);
+		self
+	}
+
+	/// Small boilerplate for using the intersection observer API for infinite scrolling.
+	///
+	/// It does not trigger the closure if it has not been scrolled to,
+	/// it defaults the root_margin to 100px,
+	/// and it automatically unobserves the last entry once it has been reached once.
+	///
+	/// This is a non-chaining function. For the chaining counterpart, see [on_infinite_scroll](Self::on_infinite_scroll).
+	fn set_on_infinite_scroll(
+		self,
+		observed_element: impl hobo::AsEntity,
+		mut f: impl FnMut(Vec<web_sys::IntersectionObserverEntry>) + 'static
+	) where Self: Copy + 'static {
+		let closure = move |entries: Vec<web_sys::IntersectionObserverEntry>| {
+			if !entries[0].is_intersecting() { return; } 
+			let observer = self.get_cmp::<web_sys::IntersectionObserver>();
+			observer.unobserve(&entries[0].target());
+
+			f(entries);
+		};
+
+		self.set_on_intersection(observed_element, 100, closure);
+	}
+
+	/// The chaining counterpart of [set_on_intersection](Self::set_on_intersection).
+	fn on_intersection(
+			self,
+			observed_element: impl hobo::AsEntity,
+			root_margin: u64,
+			f: impl FnMut(Vec<web_sys::IntersectionObserverEntry>) + 'static
+		) -> Self where Self: Copy + 'static {
+
+		self.set_on_intersection(observed_element, root_margin, f);
+		self
+	}
+
+	/// Boilerplate for useing the [IntersectionObserverAPI](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API).
+	///
+	/// Creates a new observer with the passed in parameters,
+	/// saves the closure and the observer as a component,
+	/// and then immediately calls observe on the element, 
+	///
+	/// This is a non-chaining function. For the chaining counterpart, see [on_intersection](Self::on_intersection).
+	fn set_on_intersection(self, observed_element: impl hobo::AsEntity, root_margin: u64, f: impl FnMut(Vec<web_sys::IntersectionObserverEntry>) + 'static) {
+		let closure = closure_mut(f);
+
+		let mut options = web_sys::IntersectionObserverInit::new();
+		options.root_margin(&format!("{root_margin}px"));
+		let observer = web_sys::IntersectionObserver::new_with_options(closure.as_ref().unchecked_ref(), &options).unwrap();
+
+		self.add_component(closure);
+		self.add_component(observer);
+
+		let observer = self.get_cmp::<web_sys::IntersectionObserver>();
+		observer.observe(&observed_element.get_cmp::<web_sys::Element>());
+	}
+}
+
+pub fn closure_mut<T: wasm_bindgen::convert::FromWasmAbi + 'static> (closure: impl FnMut(T) + 'static) -> Closure<dyn FnMut(T)> {
+	Closure::wrap(Box::new(closure) as Box<dyn FnMut(T) + 'static>)
 }
 
 impl<T: AsElement> EleExt for T {}

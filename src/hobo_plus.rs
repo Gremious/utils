@@ -230,10 +230,10 @@ pub trait EleExt: AsElement {
 	}
 
 	/// The chaining counterpart of [set_on_infinite_scroll](Self::set_on_infinite_scroll).
-	fn on_infinite_scroll(
+	fn on_infinite_scroll<T: hobo::AsElement + Sized + 'static>(
 			self,
 			observed_element: impl hobo::AsEntity,
-			f: impl FnMut(Vec<web_sys::IntersectionObserverEntry>) + 'static
+			f: impl (FnMut(Box<dyn FnOnce(Option<T>)>)) + 'static
 		) -> Self where Self: Copy + 'static {
 
 		self.set_on_infinite_scroll(observed_element, f);
@@ -244,20 +244,29 @@ pub trait EleExt: AsElement {
 	///
 	/// It does not trigger the closure if it has not been scrolled to,
 	/// it defaults the root_margin to 100px,
-	/// and it automatically unobserves the last entry once it has been reached once.
+	/// it automatically unobserves the last entry once it has been reached once.
+	///
+	/// This fn expectes a closure with a `FnOnce(Option<T>)` parameter, which is the next element to be observed, if any.
 	///
 	/// This is a non-chaining function. For the chaining counterpart, see [on_infinite_scroll](Self::on_infinite_scroll).
-	fn set_on_infinite_scroll(
+	fn set_on_infinite_scroll<T: hobo::AsElement + Sized + 'static>(
 		self,
 		observed_element: impl hobo::AsEntity,
-		mut f: impl FnMut(Vec<web_sys::IntersectionObserverEntry>) + 'static
+		mut f: impl (FnMut(Box<dyn FnOnce(Option<T>)>)) + 'static
 	) where Self: Copy + 'static {
+
 		let closure = move |entries: Vec<web_sys::IntersectionObserverEntry>| {
 			if !entries[0].is_intersecting() { return; } 
 			let observer = self.get_cmp::<web_sys::IntersectionObserver>();
 			observer.unobserve(&entries[0].target());
 
-			f(entries);
+			let next = Box::new(move |e:  Option<T>| {
+				if let Some(x) = e {
+					observer.observe(&x.get_cmp::<web_sys::Element>());
+				}
+			});
+
+			f(next);
 		};
 
 		self.set_on_intersection(observed_element, 100, closure);

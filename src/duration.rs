@@ -45,6 +45,14 @@ impl Duration {
 	}
 	pub fn seconds_f32(secs: f32) -> Self { Self(chrono::Duration::milliseconds(f32::round(secs * 1000.) as _)) }
 	pub fn seconds_f64(secs: f64) -> Self { Self(chrono::Duration::milliseconds(f64::round(secs * 1000.) as _)) }
+
+	pub fn clamp(&self, min: i64, max: i64) -> Self {
+		Self::seconds(self.num_seconds().clamp(min, max))
+	}
+	
+	pub fn clamp_to_zero(&self) -> Self {
+		self.clamp(0, i64::max_value())
+	}
 }
 
 impl hhmmss::Hhmmss for Duration {

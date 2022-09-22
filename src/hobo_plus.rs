@@ -258,11 +258,16 @@ pub trait EleExt: AsElement {
 		let closure = move |entries: Vec<web_sys::IntersectionObserverEntry>| {
 			if !entries[0].is_intersecting() { return; } 
 			let observer = self.get_cmp::<web_sys::IntersectionObserver>();
-			observer.unobserve(&entries[0].target());
+			let current_observed_element = entries[0].target();
+			observer.unobserve(&current_observed_element);
 
 			let next = Box::new(move |e:  Option<T>| {
 				if let Some(x) = e {
-					observer.observe(&x.get_cmp::<web_sys::Element>());
+					if current_observed_element == *x.get_cmp::<web_sys::Element>() {
+						observer.unobserve(&current_observed_element);
+					} else {
+						observer.observe(&x.get_cmp::<web_sys::Element>());
+					}
 				}
 			});
 

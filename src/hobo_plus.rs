@@ -274,7 +274,12 @@ pub trait EleExt: AsElement {
 			f(next);
 		};
 
-		self.set_on_intersection(observed_element, 100, closure);
+		let observer = self.try_get_cmp::<web_sys::IntersectionObserver>();
+		if let Some(observer) = observer {
+			observer.observe(&observed_element.get_cmp::<web_sys::Element>());
+		} else {
+			self.set_on_intersection(observed_element, 100, closure);
+		}
 	}
 
 	/// The chaining counterpart of [set_on_intersection](Self::set_on_intersection).

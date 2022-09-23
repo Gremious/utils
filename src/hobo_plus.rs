@@ -252,6 +252,15 @@ pub trait EleExt: AsElement {
 	fn set_on_infinite_scroll<T: hobo::AsElement + Sized + 'static>(
 		self,
 		observed_element: impl hobo::AsEntity,
+		// Set on infinite scroll gives you a closure (impl FnMut) in which you can do anything.
+		// In order to provide the next element to be observed,
+		// the closure give a `FnOnce(Option<T>>)` as a parameter, where T is the next element
+		//
+		// Normally, you would do
+		// ```
+		// element
+		//		.set_on_infinite_scroll(|observe_next| /* potentially async */ observe_next(big_fn_call_to_get_new_last_element()))
+		// ```
 		mut f: impl (FnMut(Box<dyn FnOnce(Option<T>)>)) + 'static
 	) where Self: Copy + 'static {
 

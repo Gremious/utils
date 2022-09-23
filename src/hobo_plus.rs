@@ -283,12 +283,8 @@ pub trait EleExt: AsElement {
 			f(next);
 		};
 
-		let observer = self.try_get_cmp::<web_sys::IntersectionObserver>();
-		if let Some(observer) = observer {
-			observer.observe(&observed_element.get_cmp::<web_sys::Element>());
-		} else {
-			self.set_on_intersection(observed_element, 100, closure);
-		}
+		// TODO: This should very be a scroll-unique component, but how?
+		self.set_on_intersection(observed_element, 100, closure);
 	}
 
 	/// The chaining counterpart of [set_on_intersection](Self::set_on_intersection).

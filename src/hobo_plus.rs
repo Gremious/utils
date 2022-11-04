@@ -86,7 +86,7 @@ pub trait EleExt: AsElement {
 
 	/// This will panic at runtime if the `Clicked` component is not present.
 	/// Make sure to actually call report_clicked() on the element first.
-	fn clicked(self) -> bool {
+	fn clicked(&self) -> bool {
 		self.try_get_cmp::<Clicked>().and_then(|x| Some(x.0)).unwrap_or(false)
 	}
 

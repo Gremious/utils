@@ -49,7 +49,7 @@ impl Duration {
 	pub fn clamp(&self, min: i64, max: i64) -> Self {
 		Self::seconds(self.num_seconds().clamp(min, max))
 	}
-	
+
 	pub fn clamp_to_zero(&self) -> Self {
 		self.clamp(0, i64::max_value())
 	}

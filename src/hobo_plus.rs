@@ -94,10 +94,10 @@ pub trait EleExt: AsElement {
 		self.class_typed::<FontTag>(style.clone())
 	}
 
-    // This (should) be width/height with no padding or border.
-    // client_rect.width()/.height() are with padding + border
-    // client_width() is for padding but no border
-   
+	// This (should) be width/height with no padding or border.
+	// client_rect.width()/.height() are with padding + border
+	// client_width() is for padding but no border
+
 	fn width(&self) -> f64 {
 		let element_rect = self.get_cmp::<web_sys::Element>().get_bounding_client_rect();
 		element_rect.right() - element_rect.left()
@@ -108,24 +108,24 @@ pub trait EleExt: AsElement {
 		element_rect.bottom() - element_rect.top()
 	}
 
-    #[inline]
-    fn top(&self) -> f64 {
-        self.get_cmp::<web_sys::Element>().get_bounding_client_rect().top()
-    }
+	#[inline]
+	fn top(&self) -> f64 {
+	    self.get_cmp::<web_sys::Element>().get_bounding_client_rect().top()
+	}
 
-    #[inline]
-    fn right(&self) -> f64 {
-        self.get_cmp::<web_sys::Element>().get_bounding_client_rect().right()
-    }
+	#[inline]
+	fn right(&self) -> f64 {
+	    self.get_cmp::<web_sys::Element>().get_bounding_client_rect().right()
+	}
 
-    #[inline]
-    fn bottom(&self) -> f64 {
-        self.get_cmp::<web_sys::Element>().get_bounding_client_rect().bottom()
-    }
+	#[inline]
+	fn bottom(&self) -> f64 {
+	    self.get_cmp::<web_sys::Element>().get_bounding_client_rect().bottom()
+	}
 
 	#[inline]
 	fn left(&self) -> f64 {
-	    self.get_cmp::<web_sys::Element>().get_bounding_client_rect().left()
+		self.get_cmp::<web_sys::Element>().get_bounding_client_rect().left()
 	}
 
 	/// Auto-flips an element if it would be off-screen, by mirroring the top/bottom/left/right positional properties appropriately.
@@ -141,7 +141,7 @@ pub trait EleExt: AsElement {
 	///
 	/// Currently only px units are supported.
 	fn flip_if_offscreen(self, spacing_v: Option<css::Property>, spacing_h: Option<css::Property>) {
-        let parent = Element(self.get_cmp::<hobo::Parent>().0);
+		let parent = Element(self.get_cmp::<hobo::Parent>().0);
 		let self_height = self.height();
 		let self_width = self.width();
 		let window_height = window().inner_height().unwrap().as_f64().unwrap();

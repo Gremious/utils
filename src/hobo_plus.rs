@@ -86,12 +86,46 @@ pub trait EleExt: AsElement {
 
 	/// This will panic at runtime if the `Clicked` component is not present.
 	/// Make sure to actually call report_clicked() on the element first.
-	fn clicked(self) -> bool {
+	fn clicked(&self) -> bool {
 		self.try_get_cmp::<Clicked>().and_then(|x| Some(x.0)).unwrap_or(false)
 	}
 
 	fn font(self, style: &css::Style) -> Self {
 		self.class_typed::<FontTag>(style.clone())
+	}
+
+	// This (should) be width/height with no padding or border.
+	// client_rect.width()/.height() are with padding + border
+	// client_width() is for padding but no border
+
+	fn width(&self) -> f64 {
+		let element_rect = self.get_cmp::<web_sys::Element>().get_bounding_client_rect();
+		element_rect.right() - element_rect.left()
+	}
+
+	fn height(&self) -> f64 {
+		let element_rect = self.get_cmp::<web_sys::Element>().get_bounding_client_rect();
+		element_rect.bottom() - element_rect.top()
+	}
+
+	#[inline]
+	fn top(&self) -> f64 {
+	    self.get_cmp::<web_sys::Element>().get_bounding_client_rect().top()
+	}
+
+	#[inline]
+	fn right(&self) -> f64 {
+	    self.get_cmp::<web_sys::Element>().get_bounding_client_rect().right()
+	}
+
+	#[inline]
+	fn bottom(&self) -> f64 {
+	    self.get_cmp::<web_sys::Element>().get_bounding_client_rect().bottom()
+	}
+
+	#[inline]
+	fn left(&self) -> f64 {
+		self.get_cmp::<web_sys::Element>().get_bounding_client_rect().left()
 	}
 
 	/// Auto-flips an element if it would be off-screen, by mirroring the top/bottom/left/right positional properties appropriately.
@@ -107,11 +141,9 @@ pub trait EleExt: AsElement {
 	///
 	/// Currently only px units are supported.
 	fn flip_if_offscreen(self, spacing_v: Option<css::Property>, spacing_h: Option<css::Property>) {
-		let parent = Element(self.as_entity()).get_cmp::<hobo::Parent>().0;
-		let element_rect = self.get_cmp::<web_sys::HtmlElement>().get_bounding_client_rect();
-		let element_height = element_rect.bottom() - element_rect.top();
-		let element_width = element_rect.right() - element_rect.left();
-		let parent_rect = parent.get_cmp::<web_sys::HtmlElement>().get_bounding_client_rect();
+		let parent = Element(self.get_cmp::<hobo::Parent>().0);
+		let self_height = self.height();
+		let self_width = self.width();
 		let window_height = window().inner_height().unwrap().as_f64().unwrap();
 		let window_width = window().inner_width().unwrap().as_f64().unwrap();
 		let mut new_style = Vec::new();
@@ -120,7 +152,7 @@ pub trait EleExt: AsElement {
 			if let css::Property::Top(css::Dimension::Some(css::Unit::Px(f))) = v {
 				let vertical = f.into_inner() as f64;
 				let dimension = css::Dimension::Some(css::unit!(100% + vertical px));
-				let property = if parent_rect.bottom() + vertical + element_height > window_height {
+				let property = if parent.bottom() + vertical + self_height > window_height {
 					css::Property::Bottom(dimension)
 				} else {
 					css::Property::Top(dimension)
@@ -129,7 +161,7 @@ pub trait EleExt: AsElement {
 			} else if let css::Property::Bottom(css::Dimension::Some(css::Unit::Px(f))) = v {
 				let vertical = f.into_inner() as f64;
 				let dimension = css::Dimension::Some(css::unit!(100% + vertical px));
-				let property = if parent_rect.top() - vertical - element_height < 0. {
+				let property = if parent.top() - vertical - self_height < 0. {
 					css::Property::Top(dimension)
 				} else {
 					css::Property::Bottom(dimension)
@@ -144,7 +176,7 @@ pub trait EleExt: AsElement {
 			if let css::Property::Left(css::Dimension::Some(css::Unit::Px(f))) = h {
 				let horizontal = f.into_inner() as f64;
 				let dimension = css::Dimension::Some(css::unit!(100% - horizontal px));
-				let property = if parent_rect.right() + horizontal + element_width > window_width {
+				let property = if parent.right() + horizontal + self_width > window_width {
 					css::Property::Right(dimension)
 				} else {
 					css::Property::Left(dimension)
@@ -153,7 +185,7 @@ pub trait EleExt: AsElement {
 			} else if let css::Property::Right(css::Dimension::Some(css::Unit::Px(f))) = h {
 				let horizontal = f.into_inner() as f64;
 				let dimension = css::Dimension::Some(css::unit!(100% - horizontal px));
-				let property = if parent_rect.left() - horizontal - element_width < 0. {
+				let property = if parent.left() - horizontal - self_width < 0. {
 					css::Property::Left(dimension)
 				} else {
 					css::Property::Right(dimension)
@@ -180,30 +212,27 @@ pub trait EleExt: AsElement {
 	fn set_component_collection<C: 'static>(&self, x: C) { self.get_cmp_mut_or_default::<Vec<C>>().push(x) }
 
 	/// The chaining counterpart of [set_on_slide](Self::set_on_slide).
-	fn on_slide(self, f: impl FnMut(f32) + 'static) -> Self where Self: Sized + Copy + 'static {
+	fn on_slide(self, f: impl FnMut(f64) + 'static) -> Self where Self: Sized + Copy + 'static {
 		self.add_on_slide(f);
 		self
 	}
 
 	/// Provides a closure which triggers on mouse move, only while the element is clicked.
-	/// It captures a normalized `f32` which indicates where the mouse currently is on the element.
+	/// It captures a normalized `f64` which indicates where the mouse currently is on the element.
 	///
 	/// This is a non-chaining function. For the chaining counterpart, see [on_slide](Self::on_slide).
-	fn add_on_slide(self, mut f: impl FnMut(f32) + 'static) where Self: Sized + Copy + 'static {
+	fn add_on_slide(self, mut f: impl FnMut(f64) + 'static) where Self: Sized + Copy + 'static {
 		self
 			.report_clicked()
-			.set_component_collection(window().on_mouse_move(move |event: web_sys::MouseEvent| {
+			.set_component_collection(window().on_mouse_move(move |mouse_event: web_sys::MouseEvent| {
 				if !self.clicked() { return; }
-				let mouse_x = event.client_x() as f32; // Current mouse position
-				let container_element = self.get_cmp::<web_sys::Element>();
-				let left = container_element.get_bounding_client_rect().x() as f32;
-				let width = container_element.client_width() as f32;
-				let position = f32::clamp((mouse_x - left) / width, 0.0, 1.0);
+				let mouse_x = mouse_event.client_x() as f64;
+				let position = f64::clamp((mouse_x - self.left()) / self.width(), 0.0, 1.0);
 				f(position);
 			}));
 	}
 
-	fn with_on_slide(self, mut f: impl FnMut(&Self, f32) + 'static) -> Self where Self: Sized + Copy + 'static {
+	fn with_on_slide(self, mut f: impl FnMut(&Self, f64) + 'static) -> Self where Self: Sized + Copy + 'static {
 		self.on_slide(move |e| f(&self, e))
 	}
 

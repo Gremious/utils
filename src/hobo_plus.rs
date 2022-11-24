@@ -110,17 +110,17 @@ pub trait EleExt: AsElement {
 
 	#[inline]
 	fn top(&self) -> f64 {
-	    self.get_cmp::<web_sys::Element>().get_bounding_client_rect().top()
+		self.get_cmp::<web_sys::Element>().get_bounding_client_rect().top()
 	}
 
 	#[inline]
 	fn right(&self) -> f64 {
-	    self.get_cmp::<web_sys::Element>().get_bounding_client_rect().right()
+		self.get_cmp::<web_sys::Element>().get_bounding_client_rect().right()
 	}
 
 	#[inline]
 	fn bottom(&self) -> f64 {
-	    self.get_cmp::<web_sys::Element>().get_bounding_client_rect().bottom()
+		self.get_cmp::<web_sys::Element>().get_bounding_client_rect().bottom()
 	}
 
 	#[inline]
@@ -248,8 +248,8 @@ pub trait EleExt: AsElement {
 	/// it will trigger immediately after the page's first flow.
 	///
 	/// However, if used in conjunction with a function that is called multiple times, e.g.
-	/// ```
-	/// 	window().on_resize(move |_| element.set_on_next_flow(|| /* ... */ ))
+	/// ```ignore
+	///		window().on_resize(move |_| element.set_on_next_flow(|| /* ... */ ))
 	/// ```
 	/// it will re-trigger after each reflow.
 	///
@@ -294,7 +294,7 @@ pub trait EleExt: AsElement {
 	) where Self: Copy + 'static {
 
 		let closure = move |entries: Vec<web_sys::IntersectionObserverEntry>| {
-			if !entries[0].is_intersecting() { return; } 
+			if !entries[0].is_intersecting() { return; }
 			let observer = self.get_cmp::<web_sys::IntersectionObserver>();
 			let current_observed_element = entries[0].target();
 			observer.unobserve(&current_observed_element);
@@ -332,7 +332,7 @@ pub trait EleExt: AsElement {
 	///
 	/// Creates a new observer with the passed in parameters,
 	/// saves the closure and the observer as a component,
-	/// and then immediately calls observe on the element, 
+	/// and then immediately calls observe on the element,
 	///
 	/// This is a non-chaining function. For the chaining counterpart, see [on_intersection](Self::on_intersection).
 	fn set_on_intersection(self, observed_element: impl hobo::AsEntity, root_margin: u64, f: impl FnMut(Vec<web_sys::IntersectionObserverEntry>) + 'static) {

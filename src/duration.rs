@@ -5,7 +5,6 @@
 	shrinkwraprs::Shrinkwrap,
 	smart_default::SmartDefault,
 	serde::Serialize, serde::Deserialize,
-	derive_more::Display,
 	derive_more::Add, derive_more::Sub,
 	derive_more::From, derive_more::Into,
 
@@ -17,16 +16,20 @@ pub struct Duration(
 	chrono::Duration,
 );
 
+impl std::fmt::Display for Duration {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result { self.0.fmt(f) }
+}
+
 impl Duration {
-	pub fn zero() -> Self { Self::default() }
-	#[inline] pub fn weeks(weeks: i64) -> Self { chrono::Duration::weeks(weeks).into() }
-	#[inline] pub fn days(days: i64) -> Self { chrono::Duration::days(days).into() }
-	#[inline] pub fn hours(hours: i64) -> Self { chrono::Duration::hours(hours).into() }
-	#[inline] pub fn minutes(minutes: i64) -> Self { chrono::Duration::minutes(minutes).into() }
-	#[inline] pub fn seconds(seconds: i64) -> Self { chrono::Duration::seconds(seconds).into() }
-	#[inline] pub fn milliseconds(milliseconds: i64) -> Self { chrono::Duration::milliseconds(milliseconds).into() }
-	#[inline] pub fn microseconds(microseconds: i64) -> Self { chrono::Duration::microseconds(microseconds).into() }
-	#[inline] pub fn nanoseconds(nanoseconds: i64) -> Self { chrono::Duration::nanoseconds(nanoseconds).into() }
+	pub fn zero() -> Self { Self(chrono::Duration::zero()) }
+	#[inline] pub fn weeks(weeks: i64) -> Self { Self(chrono::Duration::weeks(weeks)) }
+	#[inline] pub fn days(days: i64) -> Self { Self(chrono::Duration::days(days)) }
+	#[inline] pub fn hours(hours: i64) -> Self { Self(chrono::Duration::hours(hours)) }
+	#[inline] pub fn minutes(minutes: i64) -> Self { Self(chrono::Duration::minutes(minutes)) }
+	#[inline] pub fn seconds(seconds: i64) -> Self { Self(chrono::Duration::seconds(seconds)) }
+	#[inline] pub fn milliseconds(milliseconds: i64) -> Self { Self(chrono::Duration::milliseconds(milliseconds)) }
+	#[inline] pub fn microseconds(microseconds: i64) -> Self { Self(chrono::Duration::microseconds(microseconds)) }
+	#[inline] pub fn nanoseconds(nanoseconds: i64) -> Self { Self(chrono::Duration::nanoseconds(nanoseconds)) }
 
 	pub fn as_seconds_f32(&self) -> f32 {
 		let secs = self.num_seconds();
@@ -46,20 +49,11 @@ impl Duration {
 	pub fn seconds_f32(secs: f32) -> Self { Self(chrono::Duration::milliseconds(f32::round(secs * 1000.) as _)) }
 	pub fn seconds_f64(secs: f64) -> Self { Self(chrono::Duration::milliseconds(f64::round(secs * 1000.) as _)) }
 
-	pub fn clamp(&self, min: i64, max: i64) -> Self {
-		Self::seconds(self.num_seconds().clamp(min, max))
-	}
-
-	pub fn clamp_to_zero(&self) -> Self {
-		self.clamp(0, i64::max_value())
-	}
+	// https://en.wikipedia.org/wiki/Ramp_function
+	pub fn ramp(self) -> Self { self.max(Self::zero()) }
 }
 
-impl hhmmss::Hhmmss for Duration {
-	fn sms(&self) -> (i64, i64) {
-		<chrono::Duration as hhmmss::Hhmmss>::sms(self)
-	}
-}
+impl hhmmss::Hhmmss for Duration { fn sms(&self) -> (i64, i64) { self.0.sms() } }
 
 impl std::ops::Mul<f32> for Duration {
 	type Output = Self;
@@ -86,6 +80,8 @@ impl<D: rkyv::Fallible + ?Sized> rkyv::Deserialize<Duration, D> for rkyv::Archiv
 	}
 }
 
+// TODO: HACK:
+// this is kinda bad and probably UB? because chrono's Duration is not repr(transparent)
 impl<S: rkyv::Fallible + ?Sized> rkyv::Serialize<S> for Duration {
 	#[inline]
 	fn serialize(&self, serializer: &mut S) -> Result<Self::Resolver, S::Error> {
@@ -95,7 +91,7 @@ impl<S: rkyv::Fallible + ?Sized> rkyv::Serialize<S> for Duration {
 
 #[test]
 fn rkyv_test() {
-	let duration = Duration(chrono::Duration::seconds(15));
+	let duration = Duration(chrono::Duration::milliseconds(15726));
 	let bytes = rkyv::to_bytes::<_, 256>(&duration).unwrap();
 	println!("bytes: {bytes:?}");
 	let archived = unsafe { rkyv::archived_root::<Duration>(&bytes) };

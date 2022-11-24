@@ -25,35 +25,23 @@ impl SerdeJsonValueExt for serde_json::Value {
 	}
 }
 
-#[async_trait::async_trait(?Send)]
-trait ReqwestWasmResponseExt {
-	async fn json<T: serde::de::DeserializeOwned>(self) -> anyhow::Result<T>;
-}
-
-#[async_trait::async_trait(?Send)]
-impl ReqwestWasmResponseExt for reqwest::Response {
-	async fn json<T: serde::de::DeserializeOwned>(self) -> anyhow::Result<T> {
-		Ok(serde_json::from_str(&self.text().await?)?)
-	}
-}
-
 pub mod chrono_duration {
 	use serde::{Deserialize, Serialize};
 	pub fn deserialize<'de, D: serde::Deserializer<'de>>(deserializer: D) -> Result<chrono::Duration, D::Error> {
-		Ok(chrono::Duration::seconds(i64::deserialize(deserializer)?))
+		Ok(chrono::Duration::milliseconds(i64::deserialize(deserializer)?))
 	}
 	pub fn serialize<S: serde::Serializer>(value: &chrono::Duration, serializer: S) -> Result<S::Ok, S::Error> {
-		i64::serialize(&value.num_seconds(), serializer)
+		i64::serialize(&value.num_milliseconds(), serializer)
 	}
 }
 
 pub mod opt_chrono_duration {
 	use serde::{Deserialize, Serialize};
 	pub fn deserialize<'de, D: serde::Deserializer<'de>>(deserializer: D) -> Result<Option<chrono::Duration>, D::Error> {
-		Ok(<Option<i64>>::deserialize(deserializer)?.map(chrono::Duration::seconds))
+		Ok(<Option<i64>>::deserialize(deserializer)?.map(chrono::Duration::milliseconds))
 	}
 	pub fn serialize<S: serde::Serializer>(value: &Option<chrono::Duration>, serializer: S) -> Result<S::Ok, S::Error> {
-		<Option<i64>>::serialize(&value.map(|x| x.num_seconds()), serializer)
+		<Option<i64>>::serialize(&value.map(|x| x.num_milliseconds()), serializer)
 	}
 }
 

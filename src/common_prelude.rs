@@ -20,3 +20,4 @@ pub use chrono::{Datelike as _, TimeZone as _, Timelike as _};
 pub use rand::prelude::*;
 pub use tap::prelude::*;
 pub use crate::default;
+pub use semver;

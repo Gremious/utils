@@ -6,7 +6,6 @@ pub mod rkyv_shims;
 pub mod duration;
 pub mod logger;
 pub mod math;
-pub mod limited_queue;
 
 pub use duration::Duration;
 

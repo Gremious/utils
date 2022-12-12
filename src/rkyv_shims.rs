@@ -74,7 +74,7 @@ impl<D: rkyv::Fallible + ?Sized> rkyv::with::DeserializeWith<rkyv::Archived<i64>
 	rkyv::Archived<i64>: rkyv::Deserialize<i64, D>,
 {
 	fn deserialize_with(field: &rkyv::Archived<i64>, deserializer: &mut D) -> Result<chrono::DateTime<chrono::Utc>, D::Error> {
-		Ok(chrono::DateTime::<chrono::Utc>::from_utc(chrono::NaiveDateTime::from_timestamp(rkyv::Deserialize::deserialize(field, deserializer)?, 0), chrono::Utc))
+		Ok(chrono::DateTime::<chrono::Utc>::from_utc(chrono::NaiveDateTime::from_timestamp_opt(rkyv::Deserialize::deserialize(field, deserializer)?, 0).unwrap(), chrono::Utc))
 	}
 }
 
@@ -85,13 +85,13 @@ impl rkyv::with::ArchiveWith<chrono::NaiveDate> for ChronoNaiveDate {
 	type Resolver = rkyv::Resolver<i64>;
 
 	unsafe fn resolve_with(field: &chrono::NaiveDate, pos: usize, resolver: Self::Resolver, out: *mut Self::Archived) {
-		rkyv::Archive::resolve(&field.and_hms(0, 0, 0).timestamp(), pos, resolver, out);
+		rkyv::Archive::resolve(&field.and_hms_opt(0, 0, 0).unwrap().timestamp(), pos, resolver, out);
 	}
 }
 
 impl<S: rkyv::Fallible + ?Sized> rkyv::with::SerializeWith<chrono::NaiveDate, S> for ChronoNaiveDate {
 	fn serialize_with(field: &chrono::NaiveDate, serializer: &mut S) -> Result<Self::Resolver, S::Error> {
-		rkyv::Serialize::serialize(&field.and_hms(0, 0, 0).timestamp(), serializer)
+		rkyv::Serialize::serialize(&field.and_hms_opt(0, 0, 0).unwrap().timestamp(), serializer)
 	}
 }
 
@@ -99,6 +99,6 @@ impl<D: rkyv::Fallible + ?Sized> rkyv::with::DeserializeWith<rkyv::Archived<i64>
 	rkyv::Archived<i64>: rkyv::Deserialize<i64, D>,
 {
 	fn deserialize_with(field: &rkyv::Archived<i64>, deserializer: &mut D) -> Result<chrono::NaiveDate, D::Error> {
-		Ok(chrono::NaiveDateTime::from_timestamp(rkyv::Deserialize::deserialize(field, deserializer)?, 0).date())
+		Ok(chrono::NaiveDateTime::from_timestamp_opt(rkyv::Deserialize::deserialize(field, deserializer)?, 0).unwrap().date())
 	}
 }

@@ -50,6 +50,7 @@ impl Duration {
 	pub fn seconds_f64(secs: f64) -> Self { Self(chrono::Duration::milliseconds(f64::round(secs * 1000.) as _)) }
 
 	// https://en.wikipedia.org/wiki/Ramp_function
+    #[must_use]
 	pub fn ramp(self) -> Self { self.max(Self::zero()) }
 }
 

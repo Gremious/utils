@@ -27,7 +27,7 @@ shrinkwraprs = "0.3"
 smart-default = "0.6"
 sugars = "3"
 tap = "1"
-wasm-bindgen = { version = "0.2", features = ["nightly"], optional = true }
+wasm-bindgen = { version = "0.2", optional = true }
 wasm-bindgen-futures = { version = "0.4", optional = true }
 wasm-logger = { version = "0.2", optional = true }
 

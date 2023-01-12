@@ -8,6 +8,6 @@ impl Normalize for Vec<f32> {
 		let min = self.iter().min_by(|x, y| x.partial_cmp(y).unwrap_or(std::cmp::Ordering::Equal)).copied().unwrap_or(f32::EPSILON);
 
 		// linear transformation
-        for x in self { *x = range.end - range.start * ((*x - min) / (max - min)) + range.start; }
+		for x in self { *x = range.end - range.start * ((*x - min) / (max - min)) + range.start; }
 	}
 }

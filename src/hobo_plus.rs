@@ -94,10 +94,8 @@ pub trait EleExt: AsElement {
 		self.class_typed::<FontTag>(style.clone())
 	}
 
-	// This (should) be width/height with no padding or border.
 	// client_rect.width()/.height() are with padding + border
-	// client_width() is for padding but no border
-
+	// use client_width() for with padding but no borders/margins/etc
 	fn width(&self) -> f64 {
 		let element_rect = self.get_cmp::<web_sys::Element>().get_bounding_client_rect();
 		element_rect.right() - element_rect.left()

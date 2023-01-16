@@ -203,7 +203,13 @@ pub trait EleExt: AsElement {
 		S: futures_signals::signal::Signal<Item=bool> + 'static,
 		Self: 'static + Copy,
 	{
-		self.component_collection(signal.subscribe(move |x| if x { self.set_style(css::display!(none)) } else { self.remove_style() }));
+		struct HideSignalStyle;
+
+		self.component_collection(signal.subscribe(move |x| if x {
+			self.set_class_typed::<HideSignalStyle>(css::display!(none))
+		} else {
+			self.set_class_typed::<HideSignalStyle>(())
+		}));
 		self
 	}
 

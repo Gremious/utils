@@ -19,6 +19,8 @@ pub fn spawn_complain<T>(x: impl std::future::Future<Output = anyhow::Result<T>>
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
 pub struct FontTag;
+#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
+pub struct HideSignalStyleTag;
 
 pub fn window() -> web_sys::Window { web_sys::window().expect("no window") }
 pub fn document() -> web_sys::Document { window().document().expect("no document") }
@@ -201,12 +203,10 @@ pub trait EleExt: AsElement {
 		S: futures_signals::signal::Signal<Item=bool> + 'static,
 		Self: 'static + Copy,
 	{
-		struct HideSignalStyle;
-
 		self.component_collection(signal.subscribe(move |x| if x {
-			self.set_class_typed::<HideSignalStyle>(css::display!(none))
+			self.set_class_typed::<HideSignalStyleTag>(css::display!(none))
 		} else {
-			self.set_class_typed::<HideSignalStyle>(())
+			self.set_class_typed::<HideSignalStyleTag>(())
 		}));
 		self
 	}

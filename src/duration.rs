@@ -54,7 +54,7 @@ impl Duration {
 	pub fn ramp(self) -> Self { self.max(Self::zero()) }
 }
 
-impl hhmmss::Hhmmss for Duration { fn sms(&self) -> (i64, i64) { self.0.sms() } }
+impl crate::hhmmss::Hhmmss for Duration { fn sms(&self) -> (i64, i64) { self.0.sms() } }
 
 impl std::ops::Mul<f32> for Duration {
 	type Output = Self;

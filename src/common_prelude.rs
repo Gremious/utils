@@ -21,3 +21,4 @@ pub use rand::prelude::*;
 pub use tap::prelude::*;
 pub use crate::default;
 pub use semver;
+pub use crate::hhmmss::Hhmmss;

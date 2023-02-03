@@ -1,10 +1,11 @@
 use hobo::prelude::*;
+use futures::future::FutureExt;
 pub use crate::__dbg;
 
 #[track_caller]
 pub fn spawn_complain<T>(x: impl std::future::Future<Output = anyhow::Result<T>> + 'static) {
 	let caller = std::panic::Location::caller();
-	wasm_bindgen_futures::spawn_local(async move { if let Err(e) = x.await {
+	wasm_bindgen_futures::spawn_local(x.map(|res| if let Err(e) = res {
 		let lvl = log::Level::Error;
 		if lvl <= log::STATIC_MAX_LEVEL && lvl <= log::max_level() {
 			log::__private_api_log(
@@ -14,7 +15,7 @@ pub fn spawn_complain<T>(x: impl std::future::Future<Output = anyhow::Result<T>>
 				log::__private_api::Option::None,
 			);
 		}
-	} });
+	}));
 }
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]

@@ -1,11 +1,11 @@
-use hobo::prelude::*;
-use hobo::create as e;
+use hobo::{prelude::*, create as e};
+use futures::future::FutureExt;
 pub use crate::__dbg;
 
-// #[track_caller]
+#[track_caller]
 pub fn spawn_complain<T>(x: impl std::future::Future<Output = anyhow::Result<T>> + 'static) {
 	let caller = std::panic::Location::caller();
-	wasm_bindgen_futures::spawn_local(async move { if let Err(e) = x.await {
+	wasm_bindgen_futures::spawn_local(x.map(|res| if let Err(e) = res {
 		let lvl = log::Level::Error;
 		if lvl <= log::STATIC_MAX_LEVEL && lvl <= log::max_level() {
 			log::__private_api_log(
@@ -15,7 +15,7 @@ pub fn spawn_complain<T>(x: impl std::future::Future<Output = anyhow::Result<T>>
 				log::__private_api::Option::None,
 			);
 		}
-	} });
+	}));
 }
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
@@ -34,7 +34,7 @@ pub struct Flipped(pub bool);
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub struct Clicked(pub bool);
 
-pub trait EleExt: AsElement {
+pub trait AsElementExt: AsElement {
 	/// Adds an `data-name` attribute to the element with a value of T
 	fn name_typed<T: 'static>(self) -> Self {
 		if self.is_dead() { log::warn!("mark dead {:?}", self.as_entity()); return self; }
@@ -265,11 +265,10 @@ pub trait EleExt: AsElement {
 
 	/// The chaining counterpart of [set_on_infinite_scroll](Self::set_on_infinite_scroll).
 	fn on_infinite_scroll<T: hobo::AsElement + Sized + 'static>(
-			self,
-			observed_element: impl hobo::AsEntity,
-			f: impl (FnMut(Box<dyn FnOnce(Option<T>)>)) + 'static
-		) -> Self where Self: Copy + 'static {
-
+		self,
+		observed_element: impl hobo::AsEntity,
+		f: impl (FnMut(Box<dyn FnOnce(Option<T>)>)) + 'static
+	) -> Self where Self: Copy + 'static {
 		self.set_on_infinite_scroll(observed_element, f);
 		self
 	}
@@ -297,7 +296,6 @@ pub trait EleExt: AsElement {
 		// ```
 		mut f: impl (FnMut(Box<dyn FnOnce(Option<T>)>)) + 'static
 	) where Self: Copy + 'static {
-
 		let closure = move |entries: Vec<web_sys::IntersectionObserverEntry>| {
 			if !entries[0].is_intersecting() { return; }
 			let observer = self.get_cmp::<web_sys::IntersectionObserver>();
@@ -305,13 +303,10 @@ pub trait EleExt: AsElement {
 			observer.unobserve(&current_observed_element);
 
 			let next = Box::new(move |e:  Option<T>| {
-				if let Some(x) = e {
-					if current_observed_element == *x.get_cmp::<web_sys::Element>() {
-						observer.unobserve(&current_observed_element);
-					} else {
-						observer.observe(&x.get_cmp::<web_sys::Element>());
-					}
-				}
+				let Some(x) = e else { return; };
+				// HACK: Do not observe if the new element is the same one that we used to observe
+				if current_observed_element == *x.get_cmp::<web_sys::Element>() { return; }
+				observer.observe(&x.get_cmp::<web_sys::Element>());
 			});
 
 			f(next);
@@ -323,12 +318,11 @@ pub trait EleExt: AsElement {
 
 	/// The chaining counterpart of [set_on_intersection](Self::set_on_intersection).
 	fn on_intersection(
-			self,
-			observed_element: impl hobo::AsEntity,
-			root_margin: u64,
-			f: impl FnMut(Vec<web_sys::IntersectionObserverEntry>) + 'static
-		) -> Self where Self: Copy + 'static {
-
+		self,
+		observed_element: impl hobo::AsEntity,
+		root_margin: u64,
+		f: impl FnMut(Vec<web_sys::IntersectionObserverEntry>) + 'static
+	) -> Self where Self: Copy + 'static {
 		self.set_on_intersection(observed_element, root_margin, f);
 		self
 	}
@@ -345,13 +339,12 @@ pub trait EleExt: AsElement {
 
 		let mut options = web_sys::IntersectionObserverInit::new();
 		options.root_margin(&format!("{root_margin}px"));
+
 		let observer = web_sys::IntersectionObserver::new_with_options(closure.as_ref().unchecked_ref(), &options).unwrap();
+		observer.observe(&observed_element.get_cmp::<web_sys::Element>());
 
 		self.add_component(closure);
 		self.add_component(observer);
-
-		let observer = self.get_cmp::<web_sys::IntersectionObserver>();
-		observer.observe(&observed_element.get_cmp::<web_sys::Element>());
 	}
 }
 
@@ -468,11 +461,11 @@ pub mod file_select {
 	}
 }
 
-pub fn closure_mut<T: wasm_bindgen::convert::FromWasmAbi + 'static> (closure: impl FnMut(T) + 'static) -> Closure<dyn FnMut(T)> {
+fn closure_mut<T: wasm_bindgen::convert::FromWasmAbi + 'static> (closure: impl FnMut(T) + 'static) -> Closure<dyn FnMut(T)> {
 	Closure::wrap(Box::new(closure) as Box<dyn FnMut(T) + 'static>)
 }
 
-impl<T: AsElement> EleExt for T {}
+impl<T: AsElement> AsElementExt for T {}
 
 pub fn animation(f: impl FnMut(f64) -> bool + 'static) {
 	animation_with_window(window(), f);

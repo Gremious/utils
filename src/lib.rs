@@ -16,7 +16,7 @@ use serde::{Serialize, Deserialize};
 pub static REQWEST_CLIENT: Lazy<reqwest::Client> = Lazy::new(reqwest::Client::new);
 
 #[cfg(not(target_arch = "wasm32"))]
-// #[track_caller]
+#[track_caller]
 pub fn spawn_complain_send<T>(x: impl std::future::Future<Output = anyhow::Result<T>> + Send + 'static) {
 	let caller = core::panic::Location::caller();
 	tokio::spawn(async move { if let Err(e) = x.await {
@@ -53,4 +53,9 @@ impl OauthToken {
 	pub fn fresh(&self) -> bool {
 		(self.created_at + chrono::Duration::seconds(self.expires_in - 15)) > chrono::Utc::now()
 	}
+}
+
+#[macro_export]
+macro_rules! spawn_complain {
+	($body: block) => { spawn_complain(async move { $body; Ok(()) }) };
 }

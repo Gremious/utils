@@ -54,3 +54,8 @@ impl OauthToken {
 		(self.created_at + chrono::Duration::seconds(self.expires_in - 15)) > chrono::Utc::now()
 	}
 }
+
+#[macro_export]
+macro_rules! spawn_complain {
+	($body: block) => { spawn_complain(async move { $body; Ok(()) }) };
+}

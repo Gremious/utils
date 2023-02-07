@@ -1,4 +1,5 @@
 use hobo::prelude::*;
+use hobo::create as e;
 pub use crate::__dbg;
 
 // #[track_caller]
@@ -332,7 +333,7 @@ pub trait EleExt: AsElement {
 		self
 	}
 
-	/// Boilerplate for useing the [IntersectionObserverAPI](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API).
+	/// Boilerplate for using the [IntersectionObserverAPI](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API).
 	///
 	/// Creates a new observer with the passed in parameters,
 	/// saves the closure and the observer as a component,
@@ -351,6 +352,119 @@ pub trait EleExt: AsElement {
 
 		let observer = self.get_cmp::<web_sys::IntersectionObserver>();
 		observer.observe(&observed_element.get_cmp::<web_sys::Element>());
+	}
+}
+
+pub mod file_select {
+	use super::*;
+	use std::sync::Mutex;
+
+	struct FileSelect {
+		element: e::Input,
+		file_load_future: Mutex<Option<std::pin::Pin<Box<wasm_bindgen_futures::JsFuture>>>>,
+	}
+
+	#[derive(Default, Copy, Clone)]
+	enum TaskState {
+		#[default]
+		FirstPoll,
+		NoFile(Option<FileError>),
+		LoadFile,
+	}
+
+	#[derive(thiserror::Error, Debug, Copy, Clone)]
+	pub enum FileError {
+		#[error("File size exceeded 2 MB.")] FileTooBig,
+		#[error("File selection canceled.")] Canceled,
+	}
+
+	impl std::future::Future for FileSelect {
+		type Output = anyhow::Result<Vec<u8>>;
+
+		fn poll(mut self: std::pin::Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> std::task::Poll<Self::Output> {
+			struct LoadFile;
+
+			let input = self.element;
+			let task_state = *input.get_cmp::<TaskState>();
+
+			match task_state {
+				TaskState::FirstPoll => {
+					input
+						.add_on_change(hobo::enclose!((cx.waker().clone() => waker) move |_| {
+							let file = input.get_cmp::<web_sys::HtmlInputElement>().files().unwrap().item(0).unwrap();
+
+							if file.size() > 2_000_000. {
+								*input.get_cmp_mut::<TaskState>() = TaskState::NoFile(Some(FileError::FileTooBig));
+							} else {
+								*input.get_cmp_mut::<TaskState>() = TaskState::LoadFile;
+							}
+
+							waker.clone().wake();
+						}));
+
+					input.set_component_collection(document().on_focus(hobo::enclose!((cx.waker().clone() => waker) move |_| {
+						let waker = waker.clone();
+						spawn_complain(async move {
+							async_timer::interval(std::time::Duration::from_secs(1)).wait().await;
+
+							if input.is_dead() { return Ok(()); }
+
+							if let Some(0) = input.get_cmp::<web_sys::HtmlInputElement>().files().map(|f| f.length()) {
+								*input.get_cmp_mut::<TaskState>() = TaskState::NoFile(Some(FileError::Canceled));
+								waker.clone().wake();
+							}
+
+							Ok(())
+						});
+					})));
+
+					*input.get_cmp_mut::<TaskState>() = TaskState::NoFile(None);
+					input.get_cmp::<web_sys::HtmlInputElement>().click();
+				},
+				TaskState::NoFile(maybe_error) => {
+					if let Some(e) = maybe_error {
+						return std::task::Poll::Ready(Err(e.into()));
+					} else {
+						// user still selecting file
+						return std::task::Poll::Pending;
+					}
+				},
+				TaskState::LoadFile => {
+						let mut lock = self.file_load_future.lock().unwrap();
+
+						if let Some(future) = lock.as_mut() {
+							let poll = std::future::Future::poll(future.as_mut(), cx);
+							if let std::task::Poll::Ready(value) = poll {
+								match value {
+									Ok(js_val) => return std::task::Poll::Ready(Ok(js_sys::Uint8Array::new(&js_val).to_vec())),
+									Err(js_err) => return std::task::Poll::Ready(Err(anyhow::anyhow!(js_err.as_string().unwrap()))),
+								}
+							}
+						} else {
+							let file = input.get_cmp::<web_sys::HtmlInputElement>().files().unwrap().item(0).unwrap();
+							let promise = file.array_buffer();
+							let future = Box::pin(wasm_bindgen_futures::JsFuture::from(promise));
+
+							*lock = Some(future);
+							cx.waker().clone().wake();
+							return std::task::Poll::Pending;
+						}
+				},
+			}
+
+			std::task::Poll::Pending
+		}
+	}
+
+	impl Drop for FileSelect {
+		fn drop(&mut self) { self.element.remove() }
+	}
+
+	pub async fn open(accept: &str) -> anyhow::Result<Vec<u8>> {
+		FileSelect {
+			element: e::input().type_file().attr(web_str::accept(), accept).component(TaskState::default()),
+			file_load_future: Default::default(),
+		}.await
 	}
 }
 

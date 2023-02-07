@@ -34,7 +34,7 @@ pub struct Flipped(pub bool);
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub struct Clicked(pub bool);
 
-pub trait EleExt: AsElement {
+pub trait AsElementExt: AsElement {
 	/// Adds an `data-name` attribute to the element with a value of T
 	fn name_typed<T: 'static>(self) -> Self {
 		if self.is_dead() { log::warn!("mark dead {:?}", self.as_entity()); return self; }
@@ -352,7 +352,7 @@ fn closure_mut<T: wasm_bindgen::convert::FromWasmAbi + 'static> (closure: impl F
 	Closure::wrap(Box::new(closure) as Box<dyn FnMut(T) + 'static>)
 }
 
-impl<T: AsElement> EleExt for T {}
+impl<T: AsElement> AsElementExt for T {}
 
 pub fn animation(f: impl FnMut(f64) -> bool + 'static) {
 	animation_with_window(window(), f);

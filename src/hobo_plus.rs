@@ -354,40 +354,44 @@ pub mod file_select {
 
 	struct FileSelect {
 		element: e::Input,
-		file_load_future: Mutex<Option<std::pin::Pin<Box<wasm_bindgen_futures::JsFuture>>>>,
+		file_load_future: Option<std::pin::Pin<Box<wasm_bindgen_futures::JsFuture>>>,
 	}
 
-	#[derive(Default, Copy, Clone)]
+	#[derive(Default, Clone, PartialEq, Eq)]
 	enum TaskState {
 		#[default]
 		FirstPoll,
-		NoFile(Option<FileError>),
+		WaitingForFileSelect,
+		Errored(FileError),
 		LoadFile,
 	}
 
-	#[derive(thiserror::Error, Debug, Copy, Clone)]
+	#[derive(thiserror::Error, Debug, Clone, PartialEq, Eq)]
 	pub enum FileError {
 		#[error("File size exceeded 2 MB.")] FileTooBig,
 		#[error("File selection canceled.")] Canceled,
+		#[error("Failed to load file: '{0}'.")] JsFileLoadError(String),
 	}
 
 	impl std::future::Future for FileSelect {
-		type Output = anyhow::Result<Vec<u8>>;
+		type Output = Result<Vec<u8>, FileError>;
 
 		fn poll(mut self: std::pin::Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> std::task::Poll<Self::Output> {
-			struct LoadFile;
-
 			let input = self.element;
-			let task_state = *input.get_cmp::<TaskState>();
+			let task_state = input.get_cmp::<TaskState>().clone();
 
 			match task_state {
 				TaskState::FirstPoll => {
 					input
 						.add_on_change(hobo::enclose!((cx.waker().clone() => waker) move |_| {
-							let file = input.get_cmp::<web_sys::HtmlInputElement>().files().unwrap().item(0).unwrap();
+							let file = if let Some(file) = input.get_cmp::<web_sys::HtmlInputElement>().files().unwrap().item(0) {
+								file
+							} else {
+								return;
+							};
 
 							if file.size() > 2_000_000. {
-								*input.get_cmp_mut::<TaskState>() = TaskState::NoFile(Some(FileError::FileTooBig));
+								*input.get_cmp_mut::<TaskState>() = TaskState::Errored(FileError::FileTooBig);
 							} else {
 								*input.get_cmp_mut::<TaskState>() = TaskState::LoadFile;
 							}
@@ -395,53 +399,40 @@ pub mod file_select {
 							waker.clone().wake();
 						}));
 
-					input.set_component_collection(document().on_focus(hobo::enclose!((cx.waker().clone() => waker) move |_| {
+					input.component(document().on_focus(hobo::enclose!((cx.waker().clone() => waker) move |_| {
 						let waker = waker.clone();
 						spawn_complain(async move {
 							async_timer::interval(std::time::Duration::from_secs(1)).wait().await;
-
 							if input.is_dead() { return Ok(()); }
 
-							if let Some(0) = input.get_cmp::<web_sys::HtmlInputElement>().files().map(|f| f.length()) {
-								*input.get_cmp_mut::<TaskState>() = TaskState::NoFile(Some(FileError::Canceled));
+							// Check this state instead of checking for file to avoid using the dom
+							let mut task_state = input.get_cmp_mut::<TaskState>();
+							if *task_state == TaskState::WaitingForFileSelect {
+								*task_state = TaskState::Errored(FileError::Canceled);
 								waker.clone().wake();
-							}
+							};
 
 							Ok(())
 						});
 					})));
 
-					*input.get_cmp_mut::<TaskState>() = TaskState::NoFile(None);
+					*input.get_cmp_mut::<TaskState>() = TaskState::WaitingForFileSelect;
 					input.get_cmp::<web_sys::HtmlInputElement>().click();
 				},
-				TaskState::NoFile(maybe_error) => {
-					if let Some(e) = maybe_error {
-						return std::task::Poll::Ready(Err(e.into()));
-					} else {
-						// user still selecting file
-						return std::task::Poll::Pending;
-					}
-				},
+				TaskState::WaitingForFileSelect => return std::task::Poll::Pending,
+				TaskState::Errored(e) => return std::task::Poll::Ready(Err(e)),
 				TaskState::LoadFile => {
-						let mut lock = self.file_load_future.lock().unwrap();
+					let future = if let Some(x) = self.file_load_future.as_mut() { x } else {
+						let file = input.get_cmp::<web_sys::HtmlInputElement>().files().unwrap().item(0).unwrap();
+						let promise = file.array_buffer();
+						let future = Box::pin(wasm_bindgen_futures::JsFuture::from(promise));
+						self.file_load_future = Some(future);
+						self.file_load_future.as_mut().unwrap()
+					};
 
-						if let Some(future) = lock.as_mut() {
-							let poll = std::future::Future::poll(future.as_mut(), cx);
-							if let std::task::Poll::Ready(value) = poll {
-								match value {
-									Ok(js_val) => return std::task::Poll::Ready(Ok(js_sys::Uint8Array::new(&js_val).to_vec())),
-									Err(js_err) => return std::task::Poll::Ready(Err(anyhow::anyhow!(js_err.as_string().unwrap()))),
-								}
-							}
-						} else {
-							let file = input.get_cmp::<web_sys::HtmlInputElement>().files().unwrap().item(0).unwrap();
-							let promise = file.array_buffer();
-							let future = Box::pin(wasm_bindgen_futures::JsFuture::from(promise));
-
-							*lock = Some(future);
-							cx.waker().clone().wake();
-							return std::task::Poll::Pending;
-						}
+					return future.as_mut().poll(cx)
+						.map_ok(|js_val| js_sys::Uint8Array::new(&js_val).to_vec())
+						.map_err(|js_err| FileError::JsFileLoadError(js_err.as_string().unwrap()));
 				},
 			}
 
@@ -453,7 +444,7 @@ pub mod file_select {
 		fn drop(&mut self) { self.element.remove() }
 	}
 
-	pub async fn open(accept: &str) -> anyhow::Result<Vec<u8>> {
+	pub async fn open(accept: &str) -> Result<Vec<u8>, FileError> {
 		FileSelect {
 			element: e::input().type_file().attr(web_str::accept(), accept).component(TaskState::default()),
 			file_load_future: Default::default(),

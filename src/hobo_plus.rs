@@ -263,85 +263,24 @@ pub trait AsElementExt: AsElement {
 		window().request_animation_frame(Closure::once_into_js(f).unchecked_ref()).unwrap();
 	}
 
-	/// The chaining counterpart of [set_on_infinite_scroll](Self::set_on_infinite_scroll).
-	fn on_infinite_scroll<T: hobo::AsElement + Sized + 'static>(
-		self,
-		observed_element: impl hobo::AsEntity,
-		f: impl (FnMut(Box<dyn FnOnce(Option<T>)>)) + 'static
-	) -> Self where Self: Copy + 'static {
-		self.set_on_infinite_scroll(observed_element, f);
-		self
-	}
-
-	/// Small boilerplate for using the intersection observer API for infinite scrolling.
-	///
-	/// It does not trigger the closure if it has not been scrolled to,
-	/// it defaults the root_margin to 100px,
-	/// it automatically unobserves the last entry once it has been reached once.
-	///
-	/// This fn expectes a closure with a `FnOnce(Option<T>)` parameter, which is the next element to be observed, if any.
-	///
-	/// This is a non-chaining function. For the chaining counterpart, see [on_infinite_scroll](Self::on_infinite_scroll).
-	fn set_on_infinite_scroll<T: hobo::AsElement + Sized + 'static>(
-		self,
-		observed_element: impl hobo::AsEntity,
-		// Set on infinite scroll gives you a closure (impl FnMut) in which you can do anything.
-		// In order to provide the next element to be observed,
-		// the closure give a `FnOnce(Option<T>>)` as a parameter, where T is the next element
-		//
-		// Normally, you would do
-		// ```
-		// element
-		//		.set_on_infinite_scroll(|observe_next| /* potentially async */ observe_next(big_fn_call_to_get_new_last_element()))
-		// ```
-		mut f: impl (FnMut(Box<dyn FnOnce(Option<T>)>)) + 'static
-	) where Self: Copy + 'static {
-		let closure = move |entries: Vec<web_sys::IntersectionObserverEntry>| {
-			if !entries[0].is_intersecting() { return; }
-			let observer = self.get_cmp::<web_sys::IntersectionObserver>();
-			let current_observed_element = entries[0].target();
-			observer.unobserve(&current_observed_element);
-
-			let next = Box::new(move |e:  Option<T>| {
-				let Some(x) = e else { return; };
-				// HACK: Do not observe if the new element is the same one that we used to observe
-				if current_observed_element == *x.get_cmp::<web_sys::Element>() { return; }
-				observer.observe(&x.get_cmp::<web_sys::Element>());
-			});
-
-			f(next);
-		};
-
-		// TODO: This should very be a scroll-unique component, but how?
-		self.set_on_intersection(observed_element, 100, closure);
-	}
-
 	/// The chaining counterpart of [set_on_intersection](Self::set_on_intersection).
-	fn on_intersection(
-		self,
-		observed_element: impl hobo::AsEntity,
-		root_margin: u64,
-		f: impl FnMut(Vec<web_sys::IntersectionObserverEntry>) + 'static
-	) -> Self where Self: Copy + 'static {
-		self.set_on_intersection(observed_element, root_margin, f);
+	fn on_intersection(self, f: impl FnMut(Vec<web_sys::IntersectionObserverEntry>) + 'static) -> Self where Self: Copy + 'static {
+		self.set_on_intersection(f);
 		self
 	}
 
-	/// Boilerplate for useing the [IntersectionObserverAPI](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API).
+	/// Boilerplate for using the [IntersectionObserverAPI](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API).
 	///
 	/// Creates a new observer with the passed in parameters,
 	/// saves the closure and the observer as a component,
 	/// and then immediately calls observe on the element,
 	///
 	/// This is a non-chaining function. For the chaining counterpart, see [on_intersection](Self::on_intersection).
-	fn set_on_intersection(self, observed_element: impl hobo::AsEntity, root_margin: u64, f: impl FnMut(Vec<web_sys::IntersectionObserverEntry>) + 'static) {
+	fn set_on_intersection(self, f: impl FnMut(Vec<web_sys::IntersectionObserverEntry>) + 'static) {
 		let closure = closure_mut(f);
 
-		let mut options = web_sys::IntersectionObserverInit::new();
-		options.root_margin(&format!("{root_margin}px"));
-
-		let observer = web_sys::IntersectionObserver::new_with_options(closure.as_ref().unchecked_ref(), &options).unwrap();
-		observer.observe(&observed_element.get_cmp::<web_sys::Element>());
+		let observer = web_sys::IntersectionObserver::new_with_options(closure.as_ref().unchecked_ref(), &web_sys::IntersectionObserverInit::new()).unwrap();
+		observer.observe(&self.get_cmp::<web_sys::Element>());
 
 		self.add_component(closure);
 		self.add_component(observer);

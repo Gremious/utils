@@ -11,7 +11,6 @@ derive_more = "0.99"
 env_logger = "0.10"
 fehler = "1"
 futures = "0.3"
-futures-signals = "0.3"
 hobo = { version = "0.3", optional = true }
 itertools = "0.10"
 log = "0.4"

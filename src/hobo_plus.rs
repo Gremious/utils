@@ -201,7 +201,7 @@ pub trait AsElementExt: AsElement {
 	}
 
 	fn hide_signal<S>(self, signal: S) -> Self where
-		S: futures_signals::signal::Signal<Item=bool> + 'static,
+		S: hobo::signals::signal::Signal<Item=bool> + 'static,
 		Self: 'static + Copy,
 	{
 		self.component_collection(signal.subscribe(move |x| if x {
@@ -285,6 +285,34 @@ pub trait AsElementExt: AsElement {
 		self.add_component(closure);
 		self.add_component(observer);
 	}
+
+	fn get_mutable_write<T: 'static>(&self) -> hobo::owning_ref::OwningHandle<
+		hobo::owning_ref::OwningRef<
+			StorageGuard<
+				hobo::signals::signal::Mutable<T>,
+				hobo::owning_ref::OwningRef<
+					std::cell::Ref<'static, Box<(dyn DynStorage + 'static)>>,
+					SimpleStorage<hobo::signals::signal::Mutable<T>>
+				>,
+			>,
+			hobo::signals::signal::Mutable<T>,
+		>,
+		hobo::signals::signal::MutableLockMut<'static, T>,
+	> { hobo::owning_ref::OwningHandle::new_with_fn(self.get_cmp::<hobo::signals::signal::Mutable<T>>(), |x| unsafe { (*x).lock_mut() }) }
+
+	fn get_mutable_read<T: 'static>(&self) -> hobo::owning_ref::OwningHandle<
+		hobo::owning_ref::OwningRef<
+			StorageGuard<
+				hobo::signals::signal::Mutable<T>,
+				hobo::owning_ref::OwningRef<
+					std::cell::Ref<'static, Box<(dyn DynStorage + 'static)>>,
+					SimpleStorage<hobo::signals::signal::Mutable<T>>
+				>,
+			>,
+			hobo::signals::signal::Mutable<T>,
+		>,
+		hobo::signals::signal::MutableLockRef<'static, T>,
+	> { hobo::owning_ref::OwningHandle::new_with_fn(self.get_cmp::<hobo::signals::signal::Mutable<T>>(), |x| unsafe { (*x).lock_ref() }) }
 }
 
 fn closure_mut<T: wasm_bindgen::convert::FromWasmAbi + 'static> (closure: impl FnMut(T) + 'static) -> Closure<dyn FnMut(T)> {

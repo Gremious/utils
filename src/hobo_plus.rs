@@ -1,4 +1,4 @@
-use hobo::prelude::*;
+use hobo::{prelude::*, signals::signal::SignalExt};
 use futures::future::FutureExt;
 pub use crate::__dbg;
 
@@ -20,8 +20,6 @@ pub fn spawn_complain<T>(x: impl std::future::Future<Output = anyhow::Result<T>>
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
 pub struct FontTag;
-#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
-pub struct HideSignalStyleTag;
 
 pub fn window() -> web_sys::Window { web_sys::window().expect("no window") }
 pub fn document() -> web_sys::Document { window().document().expect("no document") }
@@ -200,16 +198,9 @@ pub trait AsElementExt: AsElement {
 		self.set_style(new_style);
 	}
 
-	fn hide_signal<S>(self, signal: S) -> Self where
-		S: hobo::signals::signal::Signal<Item=bool> + 'static,
-		Self: 'static + Copy,
-	{
-		self.component_collection(signal.subscribe(move |x| if x {
-			self.set_class_typed::<HideSignalStyleTag>(css::display!(none))
-		} else {
-			self.set_class_typed::<HideSignalStyleTag>(())
-		}));
-		self
+	fn hide_signal(self, signal: impl hobo::signals::signal::Signal<Item=bool> + 'static) -> Self where Self: 'static {
+		struct HideSignalStyleTag;
+		self.class_typed_signal::<HideSignalStyleTag, _, _>(signal.map(move |x| if x { vec![css::display!(none)] } else { vec![] }))
 	}
 
 	fn component_collection<C: 'static>(self, x: C) -> Self { self.set_component_collection(x); self }

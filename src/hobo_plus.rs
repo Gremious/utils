@@ -373,8 +373,13 @@ pub mod file_select {
 		#[error("Failed to load file: '{0}'.")] JsFileLoadError(String),
 	}
 
+	pub struct UserFile {
+		pub js_object: web_sys::File,
+		pub bytes: Vec<u8>,
+	}
+
 	impl std::future::Future for FileSelect {
-		type Output = Result<Vec<u8>, FileError>;
+		type Output = Result<UserFile, FileError>;
 
 		fn poll(mut self: std::pin::Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> std::task::Poll<Self::Output> {
 			let input = self.element;
@@ -393,6 +398,7 @@ pub mod file_select {
 							if file.size() > 2_000_000. {
 								*input.get_cmp_mut::<TaskState>() = TaskState::Errored(FileError::FileTooBig);
 							} else {
+								input.add_component(Some(file));
 								*input.get_cmp_mut::<TaskState>() = TaskState::LoadFile;
 							}
 
@@ -422,16 +428,20 @@ pub mod file_select {
 				TaskState::WaitingForFileSelect => return std::task::Poll::Pending,
 				TaskState::Errored(e) => return std::task::Poll::Ready(Err(e)),
 				TaskState::LoadFile => {
+					let mut file = input.get_cmp_mut::<Option<web_sys::File>>();
+
 					let future = if let Some(x) = self.file_load_future.as_mut() { x } else {
-						let file = input.get_cmp::<web_sys::HtmlInputElement>().files().unwrap().item(0).unwrap();
-						let promise = file.array_buffer();
+						let promise = (*file).as_mut().unwrap().array_buffer();
 						let future = Box::pin(wasm_bindgen_futures::JsFuture::from(promise));
 						self.file_load_future = Some(future);
 						self.file_load_future.as_mut().unwrap()
 					};
 
 					return future.as_mut().poll(cx)
-						.map_ok(|js_val| js_sys::Uint8Array::new(&js_val).to_vec())
+						.map_ok(|js_val| UserFile {
+							js_object: file.take().unwrap(),
+							bytes: js_sys::Uint8Array::new(&js_val).to_vec(),
+						})
 						.map_err(|js_err| FileError::JsFileLoadError(js_err.as_string().unwrap()));
 				},
 			}
@@ -444,7 +454,7 @@ pub mod file_select {
 		fn drop(&mut self) { self.element.remove() }
 	}
 
-	pub async fn open(accept: &str) -> Result<Vec<u8>, FileError> {
+	pub async fn open(accept: &str) -> Result<UserFile, FileError> {
 		FileSelect {
 			element: e::input().type_file().attr(web_str::accept(), accept).component(TaskState::default()),
 			file_load_future: Default::default(),

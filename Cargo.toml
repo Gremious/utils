@@ -41,4 +41,11 @@ getrandom = { version = "*", features = ["js"] } # because of rand
 tokio = { version = "1", features = ["full"] }
 
 [features]
-hobo_plus = ["js-sys", "wasm-bindgen", "wasm-bindgen-futures", "serde-wasm-bindgen", "wasm-logger", "hobo"]
+hobo_plus = ["js-sys", "wasm-bindgen", "wasm-bindgen-futures", "serde-wasm-bindgen", "wasm-logger", "hobo", "web-sys"]
+
+[dependencies.web-sys]
+version = "0.3"
+optional = true
+features = [
+	"Url", "MediaSource","Blob",
+]

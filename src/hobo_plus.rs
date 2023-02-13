@@ -306,7 +306,7 @@ pub trait AsElementExt: AsElement {
 	> { hobo::owning_ref::OwningHandle::new_with_fn(self.get_cmp::<hobo::signals::signal::Mutable<T>>(), |x| unsafe { (*x).lock_ref() }) }
 
 	#[track_caller]
-	fn spawn_complain<T, E: std::error::Error>(&self, f: impl std::future::Future<Output = Result<T, E>> + 'static) {
+	fn spawn_complain<T>(&self, f: impl std::future::Future<Output = anyhow::Result<T>> + 'static) {
 		let caller = std::panic::Location::caller();
 		let (handle, fut) = hobo::signals::cancelable_future(f.map(|res| if let Err(e) = res {
 			let lvl = log::Level::Error;
@@ -323,7 +323,7 @@ pub trait AsElementExt: AsElement {
 		self.get_cmp_mut_or_default::<hobo::entity::FutureHandlesCollection>().0.push(handle);
 	}
 
-	fn spawn_complain_in<F: FnOnce(&Self) -> Fut, Fut: std::future::Future<Output = Result<T, E>> + 'static, T, E: std::error::Error>(self, f: F) -> Self where Self: Sized { self.spawn_complain(f(&self)); self }
+	fn spawn_complain_in<F: FnOnce(&Self) -> Fut, Fut: std::future::Future<Output = anyhow::Result<T>> + 'static, T>(self, f: F) -> Self where Self: Sized { self.spawn_complain(f(&self)); self }
 }
 
 fn closure_mut<T: wasm_bindgen::convert::FromWasmAbi + 'static> (closure: impl FnMut(T) + 'static) -> Closure<dyn FnMut(T)> {

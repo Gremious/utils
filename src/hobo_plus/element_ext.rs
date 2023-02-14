@@ -1,5 +1,4 @@
-use hobo::{prelude::*, create as e, signals::signal::SignalExt};
-use futures::future::FutureExt;
+use hobo::{prelude::*, signals::signal::SignalExt};
 use super::{window, closure_mut};
 use super::entity_ext::AsEntityExt;
 
@@ -23,9 +22,7 @@ pub trait AsElementExt: AsElement {
 		self.attr("data-name", name)
 	}
 
-	fn mark_and_name<T: 'static>(self) -> Self {
-		self.mark::<T>().name_typed::<T>()
-	}
+	fn mark_and_name<T: 'static>(self) -> Self { self.mark::<T>().name_typed::<T>() }
 
 	/// On click, flips a `BoolState` component in the given element and executes a passed-in closure.
 	///
@@ -69,13 +66,9 @@ pub trait AsElementExt: AsElement {
 
 	/// This will panic at runtime if the `Clicked` component is not present.
 	/// Make sure to actually call report_clicked() on the element first.
-	fn clicked(&self) -> bool {
-		self.try_get_cmp::<Clicked>().and_then(|x| Some(x.0)).unwrap_or(false)
-	}
+	fn clicked(&self) -> bool { self.try_get_cmp::<Clicked>().and_then(|x| Some(x.0)).unwrap_or(false) }
 
-	fn font(self, style: &css::Style) -> Self {
-		self.class_typed::<FontTag>(style.clone())
-	}
+	fn font(self, style: &css::Style) -> Self { self.class_typed::<FontTag>(style.clone()) }
 
 	// client_rect.width()/.height() are with padding + border
 	// use client_width() for with padding but no borders/margins/etc
@@ -89,25 +82,10 @@ pub trait AsElementExt: AsElement {
 		element_rect.bottom() - element_rect.top()
 	}
 
-	#[inline]
-	fn top(&self) -> f64 {
-		self.get_cmp::<web_sys::Element>().get_bounding_client_rect().top()
-	}
-
-	#[inline]
-	fn right(&self) -> f64 {
-		self.get_cmp::<web_sys::Element>().get_bounding_client_rect().right()
-	}
-
-	#[inline]
-	fn bottom(&self) -> f64 {
-		self.get_cmp::<web_sys::Element>().get_bounding_client_rect().bottom()
-	}
-
-	#[inline]
-	fn left(&self) -> f64 {
-		self.get_cmp::<web_sys::Element>().get_bounding_client_rect().left()
-	}
+	#[inline] fn top(&self) -> f64 { self.get_cmp::<web_sys::Element>().get_bounding_client_rect().top() }
+	#[inline] fn right(&self) -> f64 { self.get_cmp::<web_sys::Element>().get_bounding_client_rect().right() }
+	#[inline] fn bottom(&self) -> f64 { self.get_cmp::<web_sys::Element>().get_bounding_client_rect().bottom() }
+	#[inline] fn left(&self) -> f64 { self.get_cmp::<web_sys::Element>().get_bounding_client_rect().left() }
 
 	/// Auto-flips an element if it would be off-screen, by mirroring the top/bottom/left/right positional properties appropriately.
 	///
@@ -186,10 +164,7 @@ pub trait AsElementExt: AsElement {
 	}
 
 	/// The chaining counterpart of [set_on_slide](Self::set_on_slide).
-	fn on_slide(self, f: impl FnMut(f64) + 'static) -> Self where Self: Sized + Copy + 'static {
-		self.add_on_slide(f);
-		self
-	}
+	fn on_slide(self, f: impl FnMut(f64) + 'static) -> Self where Self: Sized + Copy + 'static { self.add_on_slide(f); self }
 
 	/// Provides a closure which triggers on mouse move, only while the element is clicked.
 	/// It captures a normalized `f64` which indicates where the mouse currently is on the element.
@@ -212,8 +187,7 @@ pub trait AsElementExt: AsElement {
 
 	/// The chaining counterpart of [set_on_first_flow](Self::set_on_first_flow).
 	fn on_next_flow(self, f: impl FnOnce() + 'static) -> Self where Self: Sized + Copy + 'static {
-		self.set_on_next_flow(f);
-		self
+		self.set_on_next_flow(f); self
 	}
 
 	/// Provides a closure which triggers once, after the next reflow completes.

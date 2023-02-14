@@ -1,6 +1,4 @@
-use hobo::{prelude::*, create as e, signals::signal::SignalExt};
-use futures::future::FutureExt;
-use std::sync::Mutex;
+use hobo::{prelude::*, create as e};
 use super::{document, spawn_complain};
 
 struct FileSelect {

@@ -1,4 +1,4 @@
-use hobo::{prelude::*, create as e, signals::signal::SignalExt};
+use hobo::prelude::*;
 use futures::future::FutureExt;
 pub use crate::__dbg;
 pub use entity_ext::AsEntityExt;
@@ -62,21 +62,11 @@ pub fn animation_with_window(window: web_sys::Window, mut f: impl FnMut(f64) -> 
 	window.request_animation_frame(cb.borrow().as_ref().unwrap().as_ref().unchecked_ref()).unwrap();
 }
 
+// basically just copy of rust std's dbg!
 #[macro_export]
 macro_rules! __dbg {
-	() => {
-		log::info!("[{}:{}]", file!(), line!());
-	};
-	($val:expr) => {
-		match $val {
-			tmp => {
-				log::info!("[{}:{}] {} = {:#?}", file!(), line!(), stringify!($val), &tmp);
-				tmp
-			}
-		}
-	};
+	() => { log::info!("[{}:{}]", file!(), line!()); };
+	($val:expr) => { match $val { tmp => { log::info!("[{}:{}] {} = {:#?}", file!(), line!(), stringify!($val), &tmp); tmp } } };
 	($val:expr,) => { $crate::dbg!($val) };
-	($($val:expr),+ $(,)?) => {
-		($($crate::dbg!($val)),+,)
-	};
+	($($val:expr),+ $(,)?) => { ($($crate::dbg!($val)),+,) };
 }

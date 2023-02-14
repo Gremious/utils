@@ -1,4 +1,4 @@
-use hobo::{prelude::*, create as e, signals::signal::SignalExt};
+use hobo::prelude::*;
 use futures::future::FutureExt;
 
 pub trait AsEntityExt: AsEntity {

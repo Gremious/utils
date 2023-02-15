@@ -2,7 +2,7 @@ use hobo::prelude::*;
 use futures::future::FutureExt;
 pub use crate::__dbg;
 pub use entity_ext::AsEntityExt;
-pub use element_ext::AsElementExt;
+pub use element_ext::{ChildrenDiff, ChildrenDiffConfig, ChildrenDiffConfigBuilder, AsElementExt};
 
 mod entity_ext;
 mod element_ext;

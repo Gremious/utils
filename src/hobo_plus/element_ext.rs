@@ -121,6 +121,7 @@ impl<K, V> ChildrenDiff<K, V> where
 	}
 }
 
+// TODO: probably should run on_change less often by tracking if there's any unprocessed
 pub trait AsElementExt: AsElement {
 	fn children_diff<K, V, E, Insert, OnChange, OnRemove, OnUpdate>(self, config: ChildrenDiffConfig<K, V, E, Insert, OnChange, OnRemove, OnUpdate>) -> Self where
 		Self: Sized + Copy + 'static,
@@ -166,7 +167,14 @@ pub trait AsElementExt: AsElement {
 					on_change();
 				},
 				MapDiff::Update { key, value } => {
-					on_update(&key, &value);
+					{
+						on_update(&key, &value);
+
+						let children_diff = self.get_cmp::<ChildrenDiff<K, V>>();
+						let mutable_lock = children_diff.mutable.lock_ref();
+						if children_diff.items.len() != mutable_lock.len() || !children_diff.items.keys().zip_eq(mutable_lock.keys()).all(|(a, b)| a == b) { return; }
+					}
+
 					on_change();
 				},
 				MapDiff::Replace { .. } | MapDiff::Clear { } => unimplemented!(),

@@ -11,7 +11,7 @@ pub trait AsEntityExt: AsEntity {
 				hobo::signals::signal::Mutable<T>,
 				hobo::owning_ref::OwningRef<
 					std::cell::Ref<'static, Box<(dyn DynStorage + 'static)>>,
-					SimpleStorage<hobo::signals::signal::Mutable<T>>
+					Storage<hobo::signals::signal::Mutable<T>>
 				>,
 			>,
 			hobo::signals::signal::Mutable<T>,
@@ -25,7 +25,7 @@ pub trait AsEntityExt: AsEntity {
 				hobo::signals::signal::Mutable<T>,
 				hobo::owning_ref::OwningRef<
 					std::cell::Ref<'static, Box<(dyn DynStorage + 'static)>>,
-					SimpleStorage<hobo::signals::signal::Mutable<T>>
+					Storage<hobo::signals::signal::Mutable<T>>
 				>,
 			>,
 			hobo::signals::signal::Mutable<T>,

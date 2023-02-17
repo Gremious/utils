@@ -94,36 +94,48 @@ pub struct ChildrenDiff<K, V> where
 	pub mutable: hobo::signals::signal_map::MutableBTreeMap<K, hobo::signals::signal::Mutable<V>>,
 	pub element: hobo::Element,
 	pub items: std::collections::BTreeMap<K, hobo::Element>,
+	unprocessed_ids: std::collections::HashSet<K>,
 }
 
 impl<K, V> ChildrenDiff<K, V> where
 	K: Ord + Clone + std::hash::Hash + 'static,
 	V: 'static,
 {
-	pub fn add(&self, key: K, value: V) {
+	pub fn add(&mut self, key: K, value: V) {
 		let mut mutable_lock = self.mutable.lock_mut();
-		if mutable_lock.insert_cloned(key, hobo::signals::signal::Mutable::new(value)).is_some() {
+		if mutable_lock.insert_cloned(key.clone(), hobo::signals::signal::Mutable::new(value)).is_some() {
 			log::warn!("ChildrenDiff::add overriding existing value, this is likely an error");
 		}
+		self.unprocessed_ids.insert(key);
 	}
 
-	pub fn update(&self, key: K, value: V) {
+	pub fn update(&mut self, key: K, value: V) {
 		let mut mutable_lock = self.mutable.lock_mut();
 		let value_mutable = mutable_lock.get(&key).unwrap().clone();
 		value_mutable.set(value);
 		// this is to trigger MapDiff::Update
-		mutable_lock.insert_cloned(key, value_mutable);
+		mutable_lock.insert_cloned(key.clone(), value_mutable);
+		self.unprocessed_ids.insert(key);
 	}
 
-	pub fn remove(&self, key: &K) {
+	pub fn update_with(&mut self, key: K, f: impl FnOnce(&mut V)) {
 		let mut mutable_lock = self.mutable.lock_mut();
-		mutable_lock.remove(key);
+		let value_mutable = mutable_lock.get(&key).unwrap().clone();
+		f(&mut value_mutable.lock_mut());
+		// this is to trigger MapDiff::Update
+		mutable_lock.insert_cloned(key.clone(), value_mutable);
+		self.unprocessed_ids.insert(key);
+	}
+
+	pub fn remove(&mut self, key: K) {
+		let mut mutable_lock = self.mutable.lock_mut();
+		mutable_lock.remove(&key);
+		self.unprocessed_ids.insert(key);
 	}
 }
 
-// TODO: probably should run on_change less often by tracking if there's any unprocessed
 pub trait AsElementExt: AsElement {
-	fn children_diff<K, V, E, Insert, OnChange, OnRemove, OnUpdate>(self, config: ChildrenDiffConfig<K, V, E, Insert, OnChange, OnRemove, OnUpdate>) -> Self where
+	fn children_diff<K, V, E, Insert, OnChange, OnRemove, OnUpdate>(self, config: ChildrenDiffConfigBuilder<K, V, E, Insert, OnChange, OnRemove, OnUpdate>) -> Self where
 		Self: Sized + Copy + 'static,
 		K: Ord + Clone + std::hash::Hash + 'static,
 		V: 'static,
@@ -135,7 +147,7 @@ pub trait AsElementExt: AsElement {
 	{
 		use hobo::signals::{signal_map::{MapDiff, MutableBTreeMap}, signal::Mutable};
 
-		let ChildrenDiffConfig { mut insert, mut on_change, mut on_remove, mut on_update, .. } = config;
+		let ChildrenDiffConfig { mut insert, mut on_change, mut on_remove, mut on_update, .. } = config.build();
 		let mutable = MutableBTreeMap::<K, Mutable<V>>::new();
 		self
 			.component(mutable.signal_map_cloned().subscribe(move |diff| match diff {
@@ -145,10 +157,9 @@ pub trait AsElementExt: AsElement {
 						self.add_child(element);
 
 						let mut children_diff = self.get_cmp_mut::<ChildrenDiff<K, V>>();
+						children_diff.unprocessed_ids.remove(&key);
 						children_diff.items.insert(key, element);
-
-						let mutable_lock = children_diff.mutable.lock_ref();
-						if children_diff.items.len() != mutable_lock.len() || !children_diff.items.keys().zip_eq(mutable_lock.keys()).all(|(a, b)| a == b) { return; }
+						if !children_diff.unprocessed_ids.is_empty() { return; }
 					}
 
 					on_change();
@@ -159,9 +170,9 @@ pub trait AsElementExt: AsElement {
 						element.remove();
 						on_remove(&key);
 
-						let children_diff = self.get_cmp::<ChildrenDiff<K, V>>();
-						let mutable_lock = children_diff.mutable.lock_ref();
-						if children_diff.items.len() != mutable_lock.len() || !children_diff.items.keys().zip_eq(mutable_lock.keys()).all(|(a, b)| a == b) { return; }
+						let mut children_diff = self.get_cmp_mut::<ChildrenDiff<K, V>>();
+						children_diff.unprocessed_ids.remove(&key);
+						if !children_diff.unprocessed_ids.is_empty() { return; }
 					}
 
 					on_change();
@@ -170,16 +181,16 @@ pub trait AsElementExt: AsElement {
 					{
 						on_update(&key, &value);
 
-						let children_diff = self.get_cmp::<ChildrenDiff<K, V>>();
-						let mutable_lock = children_diff.mutable.lock_ref();
-						if children_diff.items.len() != mutable_lock.len() || !children_diff.items.keys().zip_eq(mutable_lock.keys()).all(|(a, b)| a == b) { return; }
+						let mut children_diff = self.get_cmp_mut::<ChildrenDiff<K, V>>();
+						children_diff.unprocessed_ids.remove(&key);
+						if !children_diff.unprocessed_ids.is_empty() { return; }
 					}
 
 					on_change();
 				},
 				MapDiff::Replace { .. } | MapDiff::Clear { } => unimplemented!(),
 			}))
-			.component(ChildrenDiff { mutable, element: self.as_element(), items: std::collections::BTreeMap::new() })
+			.component(ChildrenDiff { mutable, element: self.as_element(), items: Default::default(), unprocessed_ids: Default::default() })
 	}
 
 	/// Adds an `data-name` attribute to the element with a value of T

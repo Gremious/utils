@@ -1,5 +1,4 @@
 use hobo::{prelude::*, signals::signal::SignalExt};
-use itertools::Itertools;
 use super::{window, closure_mut};
 use super::entity_ext::AsEntityExt;
 

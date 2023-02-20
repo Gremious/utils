@@ -3,11 +3,10 @@ use futures::future::FutureExt;
 pub use crate::__dbg;
 pub use entity_ext::AsEntityExt;
 pub use element_ext::{ChildrenDiff, ChildrenDiffConfig, ChildrenDiffConfigBuilder, AsElementExt};
-pub use file_select::open;
 
 mod entity_ext;
 mod element_ext;
-mod file_select;
+pub mod file_select;
 
 #[track_caller]
 pub fn spawn_complain<T>(x: impl std::future::Future<Output = anyhow::Result<T>> + 'static) {

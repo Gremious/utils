@@ -3,7 +3,9 @@ use futures::future::FutureExt;
 pub use crate::__dbg;
 pub use entity_ext::AsEntityExt;
 pub use element_ext::{ChildrenDiff, ChildrenDiffConfig, ChildrenDiffConfigBuilder, AsElementExt};
+pub use html_ext::AExt;
 
+mod html_ext;
 mod entity_ext;
 mod element_ext;
 pub mod file_select;

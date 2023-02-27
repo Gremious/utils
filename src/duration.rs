@@ -53,6 +53,49 @@ impl Duration {
 	// https://en.wikipedia.org/wiki/Ramp_function
 	#[must_use]
 	pub fn ramp(self) -> Self { self.max(Self::zero()) }
+
+    /// Returns a naive estimate of the number of whole years in the duration.
+    #[inline]
+    pub fn num_years_naive(&self) -> i64 {
+        self.num_days() / 365
+    }
+
+	/// Pretty formatting in the stlye of "1 Day", "3 hours", etc. - whatever the largest denominator is.
+	// made me feel like i'm writing a joke yandere dev would make, but I don't thiiiink there's a better way??
+	// I could google for a crate but it's like 1 fn, I might as well be the one
+	// also idk how to name this well
+	pub fn display_as_word(self) -> String {
+		return if self.num_years_naive() > 1 {
+			let years = self.num_years_naive();
+			format!("{years} year{}", if years >= 2 {"s"} else {""})
+		} else if self.num_weeks() > 0 {
+			let weeks = self.num_weeks();
+			format!("{weeks} week{}", if weeks >= 2 {"s"} else {""})
+		} else if self.num_days() > 0 {
+			let days = self.num_days();
+			format!("{days} day{}", if days >= 2 {"s"} else {""})
+		} else if self.num_hours() > 0 {
+			let hours = self.num_hours();
+			format!("{hours} hour{}", if hours >= 2 {"s"} else {""})
+		} else if self.num_minutes() > 0 {
+			let minutes = self.num_minutes();
+			format!("{minutes} minute{}", if minutes >= 2 {"s"} else {""})
+		} else if self.num_seconds() > 0 {
+			let seconds = self.num_seconds();
+			format!("{seconds} second{}", if seconds >= 2 {"s"} else {""})
+		} else if self.num_milliseconds() > 0 {
+			let milliseconds = self.num_milliseconds();
+			format!("{milliseconds} millisecond{}", if milliseconds >= 2 {"s"} else {""})
+		} else if self.num_microseconds() > Some(0) {
+			let microseconds = self.num_microseconds().unwrap();
+			format!("{microseconds} microsecond{}", if microseconds >= 2 {"s"} else {""})
+		} else if self.num_nanoseconds() > Some(0) {
+			let nanoseconds = self.num_nanoseconds().unwrap();
+			format!("{nanoseconds} nanosecond{}", if nanoseconds >= 2 {"s"} else {""})
+		} else {
+			String::from("a moment")
+		}
+	}
 }
 
 impl crate::hhmmss::Hhmmss for Duration { fn sms(&self) -> (i64, i64) { self.0.sms() } }

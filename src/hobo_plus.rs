@@ -2,8 +2,8 @@ use hobo::prelude::*;
 use futures::future::FutureExt;
 pub use crate::__dbg;
 pub use entity_ext::AsEntityExt;
-pub use element_ext::{ChildrenDiff, ChildrenDiffConfig, ChildrenDiffConfigBuilder, AsElementExt};
-pub use html_ext::AExt;
+pub use element_ext::{ChildrenDiff, ChildrenDiffConfig, ChildrenDiffConfigBuilder, AsElementExt, FontTag, Clicked};
+pub use html_ext::{ AExt, Toggleable };
 
 mod html_ext;
 mod entity_ext;

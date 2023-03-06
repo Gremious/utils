@@ -5,10 +5,6 @@ use super::entity_ext::AsEntityExt;
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
 pub struct FontTag;
 
-/// Generic `bool` component for on-click state-switch-like events
-#[derive(Clone, Debug, Eq, PartialEq, Hash)]
-pub struct Flipped(pub bool);
-
 /// Allows you to tell whether it is currently being clicked on (mousedown active).
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub struct Clicked(pub bool);
@@ -201,21 +197,6 @@ pub trait AsElementExt: AsElement {
 	}
 
 	fn mark_and_name<T: 'static>(self) -> Self { self.mark::<T>().name_typed::<T>() }
-
-	/// On click, flips a `BoolState` component in the given element and executes a passed-in closure.
-	///
-	/// Closure parameters are `self`, and the already flipped state `bool`
-	fn on_flip(self, mut f: impl FnMut(&Self, bool) + 'static) -> Self where Self: Sized + Copy + 'static {
-		if self.try_get_cmp::<Flipped>().is_none() { self.add_component(Flipped(false)); };
-		self.add_on_click(move |_| {
-			let state = self.try_get_cmp_mut::<Flipped>();
-			if let Some(mut state) = state {
-				state.0 = !state.0;
-				f(&self, state.0);
-			}
-		});
-		self
-	}
 
 	/// Adds the `Clicked` component to an element which allows you to tell whether it is currently being clicked on (mousedown active).
 	///

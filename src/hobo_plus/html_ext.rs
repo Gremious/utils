@@ -28,14 +28,15 @@ pub trait Toggleable: AsElement + Copy + Sized + 'static {
 	fn set_toggleable(self, default: bool) { let _ = self.get_cmp_mut_or(|| Mutable::new(Toggle(default))); }
 
 	/// Takes in a closure of (self, current toggle state as fired by the mutable) and executes it.
-	fn on_toggle(self, f: impl FnMut(&Self, bool) + 'static) -> Self { self.set_on_toggle(f); self }
-	fn set_on_toggle(self, mut f: impl FnMut(&Self, bool) + 'static) -> Self {
+	fn set_on_toggle(self, mut f: impl FnMut(bool) + 'static) -> Self {
 		let flip_state = self.try_get_cmp::<ToggleState>().expect("No Toggle Mutable found. Did you call `set_/toggleable`?");
 		self.add_bundle(flip_state.signal().subscribe(move |state| {
-			f(&self, *state);
+			f(*state);
 		}));
 		self
 	}
+	fn on_toggle(self, f: impl FnMut(bool) + 'static) -> Self { self.set_on_toggle(f); self }
+	fn with_on_toggle(self, mut f: impl FnMut(&Self, bool) + 'static) -> Self { self.on_toggle(move |e| f(&self, e)) }
 
 	fn get_value(self) -> bool {
 		**self.get_cmp::<ToggleState>().lock_ref()

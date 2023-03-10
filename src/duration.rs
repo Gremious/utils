@@ -54,11 +54,11 @@ impl Duration {
 	#[must_use]
 	pub fn ramp(self) -> Self { self.max(Self::zero()) }
 
-    /// Returns a naive estimate of the number of whole years in the duration.
-    #[inline]
-    pub fn num_years_naive(&self) -> i64 {
-        self.num_days() / 365
-    }
+	/// Returns a naive estimate of the number of whole years in the duration.
+	#[inline]
+	pub fn num_years_naive(&self) -> i64 {
+		self.num_days() / 365
+	}
 
 	/// Pretty formatting in the stlye of "1 Day", "3 hours", etc. - whatever the largest denominator is.
 	pub fn display_as_word(self) -> String {

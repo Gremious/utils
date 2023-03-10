@@ -1,7 +1,6 @@
 use hobo::{prelude::*, create as e};
-use hobo::signals::signal::{Mutable, MutableSignal};
+use hobo::signals::signal::{Mutable, MutableSignal, SignalExt};
 use super::entity_ext::AsEntityExt;
-use shrinkwraprs::Shrinkwrap;
 pub use tap::prelude::*;
 
 pub trait AExt: AsElement + Copy {
@@ -12,11 +11,9 @@ pub trait AExt: AsElement + Copy {
 impl AExt for e::A {}
 
 /// Generic `bool` component for checbox/switch like events.
-#[derive(Shrinkwrap)]
-#[shrinkwrap(mutable)]
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
-pub struct Toggle(pub bool);
-pub type ToggleState = Mutable<Toggle>;
+pub struct Toggle(bool);
+type ToggleState = Mutable<Toggle>;
 
 // There's checkboxes, radials, and switches. And maybe even different types of those.
 // They all have a bunch of shared functionality,
@@ -29,28 +26,30 @@ pub trait Toggleable: AsElement + Copy + Sized + 'static {
 
 	/// Takes in a closure of (self, current toggle state as fired by the mutable) and executes it.
 	fn set_on_toggle(self, mut f: impl FnMut(bool) + 'static) -> Self {
-		let flip_state = self.try_get_cmp::<ToggleState>().expect("No Toggle Mutable found. Did you call `set_/toggleable`?");
-		self.add_bundle(flip_state.signal().subscribe(move |state| {
-			f(*state);
-		}));
+		let state = self.try_get_cmp::<ToggleState>().expect("No Toggle Mutable found. Did you call `set_/toggleable`?");
+		self.add_bundle(state.signal().subscribe(move |x| f(x.0)));
 		self
 	}
 	fn on_toggle(self, f: impl FnMut(bool) + 'static) -> Self { self.set_on_toggle(f); self }
 	fn with_on_toggle(self, mut f: impl FnMut(&Self, bool) + 'static) -> Self { self.on_toggle(move |e| f(&self, e)) }
 
-	fn get_value(self) -> bool {
-		**self.get_cmp::<ToggleState>().lock_ref()
+	fn value(&self) -> bool {
+		self.get_cmp::<ToggleState>().lock_ref().0
 	}
 
-	fn set_value(self, v: bool) {
-		self.get_cmp::<ToggleState>().set_neq(Toggle(v));
+	fn set_value(&self, v: bool) {
+		self.get_cmp::<ToggleState>().set(Toggle(v));
 	}
 
-	fn toggle(self) {
+	fn toggle(&self) {
 		self.get_cmp::<ToggleState>().lock_mut().tap_mut(|x| { x.0 = !x.0; });
 	}
 
-	fn toggle_signal(self) -> MutableSignal<Toggle> {
-		self.get_cmp::<ToggleState>().signal()
+	fn value_signal(self) -> hobo::signals::signal::Map<MutableSignal<Toggle>, fn (Toggle) -> bool> {
+		fn lift_toggle(x: Toggle) -> bool { x.0 }
+
+		self.get_cmp::<ToggleState>().signal().map(lift_toggle)
 	}
+
+	fn toggle_on_click(self) -> Self { self.on_click(move |_| self.toggle()) }
 }

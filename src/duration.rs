@@ -62,23 +62,19 @@ impl Duration {
 
 	/// Pretty formatting in the stlye of "1 Day", "3 hours", etc. - whatever the largest denominator is.
 	pub fn display_as_word(self) -> String {
-		let time = [
-			(self.num_years_naive(),               "year"),
-			(self.num_weeks(),                     "week"),
-			(self.num_days(),                      "day"),
-			(self.num_hours(),                     "hour"),
-			(self.num_minutes(),                   "minute"),
-			(self.num_seconds(),                   "second"),
-			(self.num_milliseconds(),              "miliseconds"),
+		[
+			(self.num_years_naive(),			   "year"),
+			(self.num_weeks(),					   "week"),
+			(self.num_days(),					   "day"),
+			(self.num_hours(),					   "hour"),
+			(self.num_minutes(),				   "minute"),
+			(self.num_seconds(),				   "second"),
+			(self.num_milliseconds(),			   "miliseconds"),
 			(self.num_microseconds().unwrap_or(0), "microsecond"),
 			(self.num_nanoseconds().unwrap_or(0),  "nanosecond"),
-		];
-
-		if let Some((i, (value, word))) = time.into_iter().enumerate().find(|(_, (x, _))| *x > 0) {
-			format!("{value} {word}{}", if value >= 2 {"s"} else {""})
-		} else {
-			String::from("moment")
-		}
+		].iter()
+			.find(|(x, _)| *x > 0)
+			.map_or("moment".to_owned(), |(value, word)| format!("{value} {word}{}", if *value > 1 { "s" } else { "" }))
 	}
 }
 

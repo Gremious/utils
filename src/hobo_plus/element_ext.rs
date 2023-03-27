@@ -86,9 +86,13 @@ pub struct ChildrenDiff<K, V> where
 	K: Ord + Clone + std::hash::Hash + 'static,
 	V: 'static,
 {
+	/// Mutable which is being updated/watched.
 	pub mutable: hobo::signals::signal_map::MutableBTreeMap<K, hobo::signals::signal::Mutable<V>>,
+	/// Element which gets items appended/removed.
 	pub element: hobo::Element,
+	/// Hobo elements that represent the current state.
 	pub items: std::collections::BTreeMap<K, hobo::Element>,
+	/// "kind of a hack to avoid running on_change too often">
 	unprocessed_ids: std::collections::HashSet<K>,
 }
 

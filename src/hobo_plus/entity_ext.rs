@@ -1,5 +1,6 @@
 use hobo::prelude::*;
 use futures::future::FutureExt;
+use error;
 
 pub trait AsEntityExt: AsEntity {
 	fn bundle<C: 'static>(self, x: C) -> Self where Self: Sized { self.add_bundle(x); self }

@@ -1,5 +1,4 @@
 #[cfg(feature = "hobo_plus")] pub mod hobo_plus;
-pub mod error;
 pub mod serde_utils;
 pub mod common_prelude;
 pub mod rkyv_shims;
@@ -9,6 +8,7 @@ pub mod math;
 pub mod hhmmss;
 
 pub use duration::Duration;
+use error;
 
 use once_cell::sync::Lazy;
 use serde::{Serialize, Deserialize};

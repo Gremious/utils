@@ -4,6 +4,7 @@ pub use crate::__dbg;
 pub use entity_ext::AsEntityExt;
 pub use element_ext::{ChildrenDiff, ChildrenDiffConfig, ChildrenDiffConfigBuilder, AsElementExt, FontTag, Clicked};
 pub use html_ext::{ AExt, Toggleable };
+use error;
 
 mod html_ext;
 mod entity_ext;

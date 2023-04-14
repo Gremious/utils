@@ -8,7 +8,6 @@ pub mod math;
 pub mod hhmmss;
 
 pub use duration::Duration;
-use error;
 
 use once_cell::sync::Lazy;
 use serde::{Serialize, Deserialize};

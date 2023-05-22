@@ -24,7 +24,7 @@ semver = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 shrinkwraprs = "0.3"
-smart-default = "0.6"
+smart-default = "0.7"
 sugars = "3"
 tap = "1"
 thiserror = "1"

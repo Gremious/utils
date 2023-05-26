@@ -78,6 +78,39 @@ impl<D: rkyv::Fallible + ?Sized> rkyv::with::DeserializeWith<rkyv::Archived<i64>
 	}
 }
 
+pub struct OptionChronoDateTimeUtc;
+
+impl rkyv::with::ArchiveWith<Option<chrono::DateTime<chrono::Utc>>> for OptionChronoDateTimeUtc {
+	type Archived = rkyv::Archived<Option<i64>>;
+	type Resolver = rkyv::Resolver<Option<i64>>;
+
+	unsafe fn resolve_with(field: &Option<chrono::DateTime<chrono::Utc>>, pos: usize, resolver: Self::Resolver, out: *mut Self::Archived) {
+		rkyv::Archive::resolve(&field.map(|f| f.timestamp()), pos, resolver, out);
+	}
+}
+
+impl<S: rkyv::Fallible + ?Sized> rkyv::with::SerializeWith<Option<chrono::DateTime<chrono::Utc>>, S> for OptionChronoDateTimeUtc {
+	fn serialize_with(field: &Option<chrono::DateTime<chrono::Utc>>, serializer: &mut S) -> Result<Self::Resolver, S::Error> {
+		rkyv::Serialize::serialize(&field.map(|f| f.timestamp()), serializer)
+	}
+}
+
+impl<D: rkyv::Fallible + ?Sized> rkyv::with::DeserializeWith<rkyv::Archived<Option<i64>>, Option<chrono::DateTime<chrono::Utc>>, D> for OptionChronoDateTimeUtc where
+	rkyv::Archived<Option<i64>>: rkyv::Deserialize<Option<i64>, D>,
+{
+	fn deserialize_with(field: &rkyv::Archived<Option<i64>>, deserializer: &mut D) -> Result<Option<chrono::DateTime<chrono::Utc>>, D::Error> {
+		let option_timestamp: Option<i64> = rkyv::Deserialize::deserialize(field, deserializer)?;
+
+		Ok(if let Some(timestamp) = option_timestamp {
+			// I'd rather this panic than silently convert to a None in case our datetimes are somehow terribly scuffed?
+			let naive_date = chrono::NaiveDateTime::from_timestamp_opt(timestamp, 0).unwrap();
+			Some(chrono::DateTime::<chrono::Utc>::from_utc(naive_date, chrono::Utc))
+		} else {
+			None
+		})
+	}
+}
+
 pub struct ChronoNaiveDate;
 
 impl rkyv::with::ArchiveWith<chrono::NaiveDate> for ChronoNaiveDate {

@@ -46,5 +46,8 @@ hobo_plus = ["js-sys", "wasm-bindgen", "wasm-bindgen-futures", "serde-wasm-bindg
 version = "0.3"
 optional = true
 features = [
+	"IntersectionObserver",
+	"IntersectionObserverInit",
+	"IntersectionObserverEntry",
 	"Url", "MediaSource","Blob",
 ]

@@ -1,4 +1,7 @@
+#![feature(async_fn_in_trait)]
+
 #[cfg(feature = "hobo_plus")] pub mod hobo_plus;
+pub mod auth;
 pub mod serde_utils;
 pub mod common_prelude;
 pub mod rkyv_shims;
@@ -35,24 +38,6 @@ pub fn spawn_complain_send<T>(x: impl std::future::Future<Output = anyhow::Resul
 pub fn default<T: Default>() -> T { T::default() }
 
 fn one_hour() -> i64 { 3600 }
-
-#[derive(Debug, Serialize, Deserialize, Clone, smart_default::SmartDefault, PartialEq, Eq, Hash, rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)]
-pub struct OauthToken {
-	#[serde(default = "one_hour")]
-	pub expires_in: i64,
-	pub access_token: String,
-	pub refresh_token: Option<String>,
-	#[with(rkyv_shims::ChronoDateTimeUtc)]
-	#[default(chrono::Utc::now())]
-	#[serde(default = "chrono::Utc::now")]
-	pub created_at: chrono::DateTime<chrono::Utc>,
-}
-
-impl OauthToken {
-	pub fn fresh(&self) -> bool {
-		(self.created_at + chrono::Duration::seconds(self.expires_in - 15)) > chrono::Utc::now()
-	}
-}
 
 #[macro_export]
 macro_rules! spawn_complain {

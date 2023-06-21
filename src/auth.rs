@@ -1,16 +1,22 @@
-// use super::*;
-//
-// #[derive(Debug, Serialize, Deserialize, Clone, smart_default::SmartDefault, PartialEq, Eq, Hash, rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)]
-// pub struct OauthToken {
-//     #[serde(default = "one_hour")]
-//     pub expires_in: i64,
-//     pub access_token: String,
-//     pub refresh_token: Option<String>,
-//     #[with(rkyv_shims::ChronoDateTimeUtc)]
-//     #[default(chrono::Utc::now())]
-//     #[serde(default = "chrono::Utc::now")]
-//     pub created_at: chrono::DateTime<chrono::Utc>,
-// }
+use super::*;
+
+#[derive(Debug, Serialize, Deserialize, Clone, smart_default::SmartDefault, PartialEq, Eq, Hash, rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)]
+pub struct OauthToken {
+	#[serde(default = "one_hour")]
+	pub expires_in: i64,
+	pub access_token: String,
+	pub refresh_token: Option<String>,
+	#[with(rkyv_shims::ChronoDateTimeUtc)]
+	#[default(chrono::Utc::now())]
+	#[serde(default = "chrono::Utc::now")]
+	pub created_at: chrono::DateTime<chrono::Utc>,
+}
+
+impl OauthToken {
+	pub fn fresh(&self) -> bool {
+		(self.created_at + chrono::Duration::seconds(self.expires_in - 15)) > chrono::Utc::now()
+	}
+}
 
 /// Consider also implementing this for `&mut YourAuthStruct`,
 /// because you'll likely be holding a reference to it from some state.

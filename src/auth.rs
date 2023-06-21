@@ -6,7 +6,7 @@ use super::*;
 // I don't want to overextend.
 
 #[derive(Debug, Serialize, Deserialize, Clone, smart_default::SmartDefault, PartialEq, Eq, Hash, rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)]
-pub struct OauthToken {
+pub struct Token {
 	#[serde(default = "one_hour")]
 	pub expires_in: i64,
 	pub access_token: String,
@@ -34,7 +34,7 @@ pub trait SimpleToken {
 	}
 }
 
-impl SimpleToken for OauthToken {
+impl SimpleToken for Token {
 	fn expires_in(&self) -> chrono::Duration { chrono::Duration::seconds(self.expires_in) }
 	fn created_at(&self) -> chrono::DateTime<chrono::Utc> { self.created_at }
 	fn access_token(&self) -> &str { &self.access_token }

@@ -45,6 +45,9 @@ impl SimpleToken for Token {
 /// Consider also implementing this for `&mut YourAuthStruct`,
 /// because you'll likely be holding a reference to it from some state.
 pub trait RefreshableToken: SimpleToken {
+	// I think all tokens tend to have some sort of method to get them
+	// so it wouldn't be a crazy idea to add a fn here like fn request_token(T) -> Result<Self>
+
 	/// Refresh the token in place.
 	async fn refresh(&mut self) -> anyhow::Result<()>;
 

@@ -263,7 +263,7 @@ pub trait AsElementExt: AsElement {
 	///
 	/// Currently only px units are supported.
 	fn flip_if_offscreen(self, spacing_v: Option<css::Property>, spacing_h: Option<css::Property>) {
-		let parent = Element(self.get_cmp::<hobo::Parent>().0);
+		let parent = self.parent();
 		let self_height = self.height();
 		let self_width = self.width();
 		let window_height = window().inner_height().unwrap().as_f64().unwrap();

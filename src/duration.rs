@@ -78,6 +78,12 @@ impl Duration {
 	}
 }
 
+impl From<std::time::Duration> for Duration {
+	fn from(dur: std::time::Duration) -> Self {
+		Self(chrono::Duration::from_std(dur).unwrap())
+	}
+}
+
 impl crate::hhmmss::Hhmmss for Duration { fn sms(&self) -> (i64, i64) { self.0.sms() } }
 
 impl std::ops::Mul<f32> for Duration {

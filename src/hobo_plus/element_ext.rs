@@ -204,18 +204,18 @@ pub trait AsElementExt: AsElement {
 
 	/// Adds the `Clicked` component to an element which allows you to tell whether it is currently being clicked on (mousedown active).
 	///
-	/// Uses the default window (e.g. [web_sys::window()])
+	/// Uses the default window (e.g. [web_sys::window()]).
 	///
-	/// See: `clicked()`
+	/// See: `clicked()`.
 	fn report_clicked(self) -> Self where Self: Sized + Copy + 'static {
 		self.report_clicked_on_window(window())
 	}
 
 	/// Adds the `Clicked` component to an element which allows you to tell whether it is currently being clicked on (mousedown active).
 	///
-	/// Uses the passed in [web_sys::Window]
+	/// Uses the passed in [web_sys::Window].
 	///
-	/// See: `clicked()`
+	/// See: `clicked()`.
 	fn report_clicked_on_window(self, window: web_sys::Window) -> Self where Self: Sized + Copy + 'static {
 		if self.try_get_cmp::<Clicked>().is_some() {
 			return self;
@@ -330,7 +330,7 @@ pub trait AsElementExt: AsElement {
 	fn on_slide(self, f: impl FnMut(f64) + 'static) -> Self where Self: Sized + Copy + 'static { self.add_on_slide(f); self }
 
 	/// Provides a closure which triggers on mouse move, only while the element is clicked.
-	/// It captures a normalized `f64` which indicates where the mouse currently is on the element.
+	/// It captures a normalized `f64` which indicates where the mouse currently is on the element (left-right).
 	///
 	/// This is a non-chaining function. For the chaining counterpart, see [on_slide](Self::on_slide).
 	fn add_on_slide(self, mut f: impl FnMut(f64) + 'static) where Self: Sized + Copy + 'static {

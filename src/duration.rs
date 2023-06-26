@@ -84,6 +84,14 @@ impl From<std::time::Duration> for Duration {
 	}
 }
 
+impl TryFrom<Duration> for std::time::Duration {
+	type Error = chrono::OutOfRangeError;
+
+	fn try_from(dur: Duration) -> Result<Self, Self::Error> {
+		dur.0.to_std()
+	}
+}
+
 impl crate::hhmmss::Hhmmss for Duration { fn sms(&self) -> (i64, i64) { self.0.sms() } }
 
 impl std::ops::Mul<f32> for Duration {

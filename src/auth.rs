@@ -54,7 +54,7 @@ pub trait RefreshableToken: SimpleToken {
 	/// Refresh the token in place if not fresh.
 	async fn ensure_fresh(&mut self) -> anyhow::Result<()> {
 		if self.is_fresh() { return Ok(()); }
-		if !self.refresh_token().is_none() { anyhow::bail!("No refresh token."); }
+		if self.refresh_token().is_none() { anyhow::bail!("No refresh token."); }
 		self.refresh().await
 	}
 

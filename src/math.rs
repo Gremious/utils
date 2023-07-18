@@ -1,11 +1,11 @@
-pub trait Normalize {
-	fn normalize(&mut self, range: std::ops::Range<f32>);
+pub trait Normalize<N> {
+	fn normalize(&mut self, range: std::ops::Range<N>);
 }
 
-impl Normalize for Vec<f32> {
-	fn normalize(&mut self, range: std::ops::Range<f32>) {
-		let max = self.iter().max_by(|x, y| x.partial_cmp(y).unwrap_or(std::cmp::Ordering::Equal)).copied().unwrap_or(f32::EPSILON);
-		let min = self.iter().min_by(|x, y| x.partial_cmp(y).unwrap_or(std::cmp::Ordering::Equal)).copied().unwrap_or(f32::EPSILON);
+impl<N: num_traits::Float> Normalize<N> for Vec<N> {
+	fn normalize(&mut self, range: std::ops::Range<N>) {
+		let max = self.iter().max_by(|x, y| x.partial_cmp(y).unwrap_or(std::cmp::Ordering::Equal)).copied().unwrap_or(N::epsilon());
+		let min = self.iter().min_by(|x, y| x.partial_cmp(y).unwrap_or(std::cmp::Ordering::Equal)).copied().unwrap_or(N::epsilon());
 
 		self.iter_mut().for_each(|x| *x = (range.end - range.start) * ((*x - min) / (max - min)) + range.start);
 	}

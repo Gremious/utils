@@ -5,6 +5,8 @@ use super::*;
 // Maybe shared::oauth::SimpleCredentials belongs here?
 // I don't want to overextend.
 
+fn one_hour() -> i64 { 3600 }
+
 #[derive(Debug, Serialize, Deserialize, Clone, smart_default::SmartDefault, PartialEq, Eq, Hash, rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)]
 pub struct Token {
 	#[serde(default = "one_hour")]

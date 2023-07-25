@@ -37,8 +37,6 @@ pub fn spawn_complain_send<T>(x: impl std::future::Future<Output = anyhow::Resul
 #[must_use]
 pub fn default<T: Default>() -> T { T::default() }
 
-fn one_hour() -> i64 { 3600 }
-
 #[macro_export]
 macro_rules! spawn_complain {
 	($body: block) => { spawn_complain(async move { $body; Ok(()) }) };

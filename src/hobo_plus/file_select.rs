@@ -97,6 +97,9 @@ impl Drop for FileSelect {
 
 pub async fn open(accept: &str) -> Result<UserFile, FileError> {
 	let element = e::input().type_file().attr(web_str::accept(), accept).component(TaskState::default());
+
+	#[cfg(debug_assertions)]
 	element.remove_cmp::<hobo::element::Complainer>();
+
 	FileSelect { element, file_load_future: None }.await
 }

@@ -1,5 +1,5 @@
 use hobo::{prelude::*, create as e};
-use super::{document, spawn_complain};
+use super::document;
 
 struct FileSelect {
 	element: e::Input,
@@ -37,12 +37,8 @@ impl std::future::Future for FileSelect {
 		match task_state {
 			TaskState::FirstPoll => {
 				input
-					.add_on_change(hobo::enclose!((cx.waker().clone() => waker) move |_| {
-						let file = if let Some(file) = input.get_cmp::<web_sys::HtmlInputElement>().files().unwrap().item(0) {
-							file
-						} else {
-							return;
-						};
+					.on_change(hobo::enclose!((cx.waker().clone() => waker) move |_| {
+						let Some(file) = input.get_cmp::<web_sys::HtmlInputElement>().files().unwrap().item(0) else { return; };
 
 						if file.size() > 2_000_000. {
 							*input.get_cmp_mut::<TaskState>() = TaskState::Errored(FileError::FileTooBig);
@@ -52,24 +48,20 @@ impl std::future::Future for FileSelect {
 						}
 
 						waker.clone().wake();
-					}));
+					}))
+					.component(document().on_focus(hobo::enclose!((cx.waker().clone() => waker) move |_| {
+						let waker = waker.clone();
+						input.spawn(async move {
+							async_timer::interval(std::time::Duration::from_secs(1)).wait().await;
 
-				input.component(document().on_focus(hobo::enclose!((cx.waker().clone() => waker) move |_| {
-					let waker = waker.clone();
-					spawn_complain(async move {
-						async_timer::interval(std::time::Duration::from_secs(1)).wait().await;
-						if input.is_dead() { return Ok(()); }
-
-						// Check this state instead of checking for file to avoid using the dom
-						let mut task_state = input.get_cmp_mut::<TaskState>();
-						if *task_state == TaskState::WaitingForFileSelect {
-							*task_state = TaskState::Errored(FileError::Canceled);
-							waker.clone().wake();
-						};
-
-						Ok(())
-					});
-				})));
+							// Check this state instead of checking for file to avoid using the dom
+							let mut task_state = input.get_cmp_mut::<TaskState>();
+							if *task_state == TaskState::WaitingForFileSelect {
+								*task_state = TaskState::Errored(FileError::Canceled);
+								waker.clone().wake();
+							};
+						});
+					})));
 
 				*input.get_cmp_mut::<TaskState>() = TaskState::WaitingForFileSelect;
 				input.get_cmp::<web_sys::HtmlInputElement>().click();
@@ -104,8 +96,7 @@ impl Drop for FileSelect {
 }
 
 pub async fn open(accept: &str) -> Result<UserFile, FileError> {
-	FileSelect {
-		element: e::input().type_file().attr(web_str::accept(), accept).component(TaskState::default()),
-		file_load_future: Default::default(),
-	}.await
+	let element = e::input().type_file().attr(web_str::accept(), accept).component(TaskState::default());
+	element.remove_cmp::<hobo::element::Complainer>();
+	FileSelect { element, file_load_future: None }.await
 }

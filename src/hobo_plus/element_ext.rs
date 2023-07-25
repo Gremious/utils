@@ -92,7 +92,7 @@ pub struct ChildrenDiff<K, V> where
 	pub element: hobo::Element,
 	/// Hobo elements that represent the current state.
 	pub items: std::collections::BTreeMap<K, hobo::Element>,
-	/// "kind of a hack to avoid running on_change too often">
+	/// "kind of a hack to avoid running on_change too often"
 	unprocessed_ids: std::collections::HashSet<K>,
 }
 

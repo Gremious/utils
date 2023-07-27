@@ -17,9 +17,10 @@ pub struct Token {
 	#[default(chrono::Utc::now())]
 	#[serde(default = "chrono::Utc::now")]
 	pub created_at: chrono::DateTime<chrono::Utc>,
+	// this exists for Google, it's a jwt with some info
+	pub id_token: Option<String>,
 }
 
-#[allow(unused_variables)]
 pub trait SimpleToken {
 	#[must_use] fn expires_in(&self) -> chrono::Duration;
 	#[must_use] fn created_at(&self) -> chrono::DateTime<chrono::Utc>;

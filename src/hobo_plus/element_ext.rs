@@ -1,4 +1,4 @@
-use hobo::{prelude::*, signals::signal::SignalExt};
+use hobo::{prelude::*, signal::SignalExt};
 use super::{window, closure_mut};
 use super::entity_ext::AsEntityExt;
 
@@ -25,8 +25,8 @@ pub struct ChildrenDiffConfigBuilder<K, V, E, Insert, OnChange, OnRemove, OnUpda
 	_pd: std::marker::PhantomData<(K, V, E)>,
 }
 
-impl<E, Insert> ChildrenDiffConfig<(), (), E, Insert, fn(), fn(&()), fn(&(), &hobo::signals::signal::Mutable<()>)> {
-	pub fn builder<K, V>() -> ChildrenDiffConfigBuilder<K, V, E, Insert, fn(), fn(&K), fn(&K, &hobo::signals::signal::Mutable<V>)> { ChildrenDiffConfigBuilder {
+impl<E, Insert> ChildrenDiffConfig<(), (), E, Insert, fn(), fn(&()), fn(&(), &hobo::signal::Mutable<()>)> {
+	pub fn builder<K, V>() -> ChildrenDiffConfigBuilder<K, V, E, Insert, fn(), fn(&K), fn(&K, &hobo::signal::Mutable<V>)> { ChildrenDiffConfigBuilder {
 		insert: None,
 		on_change: move || {},
 		on_remove: move |_| {},
@@ -37,10 +37,10 @@ impl<E, Insert> ChildrenDiffConfig<(), (), E, Insert, fn(), fn(&()), fn(&(), &ho
 
 impl<K, V, E, Insert, OnChange, OnRemove, OnUpdate> ChildrenDiffConfigBuilder<K, V, E, Insert, OnChange, OnRemove, OnUpdate> where
 	E: hobo::AsElement + 'static,
-	Insert: FnMut(&K, &hobo::signals::signal::Mutable<V>) -> E + 'static,
+	Insert: FnMut(&K, &hobo::signal::Mutable<V>) -> E + 'static,
 	OnChange: FnMut() + 'static,
 	OnRemove: FnMut(&K) + 'static,
-	OnUpdate: FnMut(&K, &hobo::signals::signal::Mutable<V>) + 'static,
+	OnUpdate: FnMut(&K, &hobo::signal::Mutable<V>) + 'static,
 {
 	pub fn insert(mut self, f: Insert) -> Self { self.insert = Some(f); self }
 	pub fn on_change<NewOnChange>(self, f: NewOnChange) -> ChildrenDiffConfigBuilder<K, V, E, Insert, NewOnChange, OnRemove, OnUpdate> where
@@ -62,7 +62,7 @@ impl<K, V, E, Insert, OnChange, OnRemove, OnUpdate> ChildrenDiffConfigBuilder<K,
 		_pd: std::marker::PhantomData,
 	} }
 	pub fn on_update<NewOnUpdate>(self, f: NewOnUpdate) -> ChildrenDiffConfigBuilder<K, V, E, Insert, OnChange, OnRemove, NewOnUpdate> where
-		NewOnUpdate: FnMut(&K, &hobo::signals::signal::Mutable<V>) + 'static,
+		NewOnUpdate: FnMut(&K, &hobo::signal::Mutable<V>) + 'static,
 	{ ChildrenDiffConfigBuilder {
 		insert: self.insert,
 		on_change: self.on_change,
@@ -87,7 +87,7 @@ pub struct ChildrenDiff<K, V> where
 	V: 'static,
 {
 	/// Mutable which is being updated/watched.
-	pub mutable: hobo::signals::signal_map::MutableBTreeMap<K, hobo::signals::signal::Mutable<V>>,
+	pub mutable: hobo::signal_map::MutableBTreeMap<K, hobo::signal::Mutable<V>>,
 	/// Element which gets items appended/removed.
 	pub element: hobo::Element,
 	/// Hobo elements that represent the current state.
@@ -102,7 +102,7 @@ impl<K, V> ChildrenDiff<K, V> where
 {
 	pub fn add(&mut self, key: K, value: V) {
 		let mut mutable_lock = self.mutable.lock_mut();
-		if mutable_lock.insert_cloned(key.clone(), hobo::signals::signal::Mutable::new(value)).is_some() {
+		if mutable_lock.insert_cloned(key.clone(), hobo::signal::Mutable::new(value)).is_some() {
 			log::warn!("ChildrenDiff::add overriding existing value, this is likely an error");
 		}
 		self.unprocessed_ids.insert(key);
@@ -139,12 +139,12 @@ pub trait AsElementExt: AsElement {
 		K: Ord + Clone + std::hash::Hash + 'static,
 		V: 'static,
 		E: hobo::AsElement + 'static,
-		Insert: FnMut(&K, &hobo::signals::signal::Mutable<V>) -> E + 'static,
+		Insert: FnMut(&K, &hobo::signal::Mutable<V>) -> E + 'static,
 		OnChange: FnMut() + 'static,
 		OnRemove: FnMut(&K) + 'static,
-		OnUpdate: FnMut(&K, &hobo::signals::signal::Mutable<V>) + 'static,
+		OnUpdate: FnMut(&K, &hobo::signal::Mutable<V>) + 'static,
 	{
-		use hobo::signals::{signal_map::{MapDiff, MutableBTreeMap}, signal::Mutable};
+		use hobo::{signal_map::{MapDiff, MutableBTreeMap}, signal::Mutable};
 
 		let ChildrenDiffConfig { mut insert, mut on_change, mut on_remove, mut on_update, .. } = config.build();
 		let mutable = MutableBTreeMap::<K, Mutable<V>>::new();
@@ -321,7 +321,7 @@ pub trait AsElementExt: AsElement {
 		self.set_style(new_style);
 	}
 
-	fn hide_signal(self, signal: impl hobo::signals::signal::Signal<Item=bool> + 'static) -> Self where Self: 'static {
+	fn hide_signal(self, signal: impl hobo::signal::Signal<Item=bool> + 'static) -> Self where Self: 'static {
 		struct HideSignalStyleTag;
 		self.class_typed_signal::<HideSignalStyleTag, _, _>(signal.map(move |x| if x { vec![css::display!(none)] } else { vec![] }))
 	}

@@ -1,5 +1,5 @@
 use hobo::{prelude::*, create as e};
-use hobo::signals::signal::{Mutable, MutableSignal, SignalExt};
+use hobo::signal::{Mutable, MutableSignal, SignalExt};
 use super::entity_ext::AsEntityExt;
 pub use tap::prelude::*;
 
@@ -45,7 +45,7 @@ pub trait Toggleable: AsElement + Copy + Sized + 'static {
 		self.get_cmp::<ToggleState>().lock_mut().tap_mut(|x| { x.0 = !x.0; });
 	}
 
-	fn value_signal(self) -> hobo::signals::signal::Map<MutableSignal<Toggle>, fn (Toggle) -> bool> {
+	fn value_signal(self) -> hobo::signal::Map<MutableSignal<Toggle>, fn (Toggle) -> bool> {
 		fn lift_toggle(x: Toggle) -> bool { x.0 }
 
 		self.get_cmp::<ToggleState>().signal().map(lift_toggle)

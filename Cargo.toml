@@ -11,7 +11,7 @@ derive_more = "0.99"
 env_logger = "0.10"
 fehler = "1"
 futures = "0.3"
-hobo = { version = "0.4", optional = true }
+hobo = { version = "0.4", optional = true, features = ["property_macros"] }
 itertools = "0.11"
 js-sys = { version = "0.3", optional = true }
 log = "0.4"

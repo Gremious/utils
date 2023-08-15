@@ -271,18 +271,18 @@ pub trait AsElementExt: AsElement {
 		let mut new_style = Vec::new();
 
 		if let Some(v) = spacing_v {
-			if let css::Property::Top(css::Dimension::Some(css::Unit::Px(f))) = v {
+			if let css::Property::Top(css::PositionOffset::Some(css::Unit::Px(f))) = v {
 				let vertical = f.into_inner() as f64;
-				let dimension = css::Dimension::Some(css::unit!(100% + vertical px));
+				let dimension = css::PositionOffset::Some(css::unit!(100% + vertical px));
 				let property = if parent.bottom() + vertical + self_height > window_height {
 					css::Property::Bottom(dimension)
 				} else {
 					css::Property::Top(dimension)
 				};
 				new_style.push(property);
-			} else if let css::Property::Bottom(css::Dimension::Some(css::Unit::Px(f))) = v {
+			} else if let css::Property::Bottom(css::PositionOffset::Some(css::Unit::Px(f))) = v {
 				let vertical = f.into_inner() as f64;
-				let dimension = css::Dimension::Some(css::unit!(100% + vertical px));
+				let dimension = css::PositionOffset::Some(css::unit!(100% + vertical px));
 				let property = if parent.top() - vertical - self_height < 0. {
 					css::Property::Top(dimension)
 				} else {
@@ -295,18 +295,18 @@ pub trait AsElementExt: AsElement {
 		}
 
 		if let Some(h) = spacing_h {
-			if let css::Property::Left(css::Dimension::Some(css::Unit::Px(f))) = h {
+			if let css::Property::Left(css::PositionOffset::Some(css::Unit::Px(f))) = h {
 				let horizontal = f.into_inner() as f64;
-				let dimension = css::Dimension::Some(css::unit!(100% - horizontal px));
+				let dimension = css::PositionOffset::Some(css::unit!(100% - horizontal px));
 				let property = if parent.right() + horizontal + self_width > window_width {
 					css::Property::Right(dimension)
 				} else {
 					css::Property::Left(dimension)
 				};
 				new_style.push(property);
-			} else if let css::Property::Right(css::Dimension::Some(css::Unit::Px(f))) = h {
+			} else if let css::Property::Right(css::PositionOffset::Some(css::Unit::Px(f))) = h {
 				let horizontal = f.into_inner() as f64;
-				let dimension = css::Dimension::Some(css::unit!(100% - horizontal px));
+				let dimension = css::PositionOffset::Some(css::unit!(100% - horizontal px));
 				let property = if parent.left() - horizontal - self_width < 0. {
 					css::Property::Left(dimension)
 				} else {
@@ -323,7 +323,7 @@ pub trait AsElementExt: AsElement {
 
 	fn hide_signal(self, signal: impl hobo::signal::Signal<Item=bool> + 'static) -> Self where Self: 'static {
 		struct HideSignalStyleTag;
-		self.class_typed_signal::<HideSignalStyleTag, _, _>(signal.map(move |x| if x { vec![css::display!(none)] } else { vec![] }))
+		self.class_typed_signal::<HideSignalStyleTag, _, _>(signal.map(move |x| if x { css::properties![css::display!(none)] } else { css::properties![] }))
 	}
 
 	/// The chaining counterpart of [set_on_slide](Self::set_on_slide).

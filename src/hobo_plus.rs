@@ -16,10 +16,11 @@ pub fn spawn_complain<T>(x: impl std::future::Future<Output = anyhow::Result<T>>
 	wasm_bindgen_futures::spawn_local(x.map(|res| if let Err(e) = res {
 		let lvl = log::Level::Error;
 		if lvl <= log::STATIC_MAX_LEVEL && lvl <= log::max_level() {
-			log::__private_api_log(
-				log::__log_format_args!("{:?}", e),
+			log::__private_api::log(
+				log::__private_api::format_args!("{e:?}"),
 				lvl,
-				&(log::__log_module_path!(), log::__log_module_path!(), caller.file(), caller.line()),
+				&(log::__private_api::module_path!(), log::__private_api::module_path!(), caller.file()),
+				caller.line(),
 				log::__private_api::Option::None,
 			);
 		}

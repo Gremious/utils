@@ -37,7 +37,7 @@ impl std::future::Future for FileSelect {
 		match task_state {
 			TaskState::FirstPoll => {
 				input
-					.on_change(hobo::enclose!((cx.waker().clone() => waker) move |_| {
+					.on_change(#[clown::clown] |_| {
 						let Some(file) = input.get_cmp::<web_sys::HtmlInputElement>().files().unwrap().item(0) else { return; };
 
 						if file.size() > 2_000_000. {
@@ -47,10 +47,10 @@ impl std::future::Future for FileSelect {
 							*input.get_cmp_mut::<TaskState>() = TaskState::LoadFile;
 						}
 
-						waker.clone().wake();
-					}))
-					.component(document().on_focus(hobo::enclose!((cx.waker().clone() => waker) move |_| {
-						let waker = waker.clone();
+						honk!(cx.waker()).clone().wake();
+					})
+					.component(document().on_focus(#[clown::clown] |_| {
+						let waker = honk!(cx.waker()).clone();
 						input.spawn(async move {
 							async_timer::interval(std::time::Duration::from_secs(1)).wait().await;
 
@@ -61,7 +61,7 @@ impl std::future::Future for FileSelect {
 								waker.clone().wake();
 							};
 						});
-					})));
+					}));
 
 				*input.get_cmp_mut::<TaskState>() = TaskState::WaitingForFileSelect;
 				input.get_cmp::<web_sys::HtmlInputElement>().click();

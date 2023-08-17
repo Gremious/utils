@@ -15,19 +15,13 @@ impl AExt for e::A {}
 pub struct Toggle(bool);
 type ToggleState = Mutable<Toggle>;
 
-// There's checkboxes, radials, and switches. And maybe even different types of those.
-// They all have a bunch of shared functionality,
-// the on_flip function didn't really do it very well, and I still wanted some consistency.
-// So I thought hey, the "StringValue" trait was very cool, maybe we can similarly do a trait for "Toggleables"?
-pub trait Toggleable: AsElement + Copy + Sized + 'static {
-	/// Sets up the necessary mutables/components.
-	fn toggleable(self, default: bool) -> Self { self.set_toggleable(default); self }
-	fn set_toggleable(self, default: bool) { let _ = self.get_cmp_mut_or(|| Mutable::new(Toggle(default))); }
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, AsElement)]
+pub struct Toggleable<E: hobo::AsElement + Clone + Copy + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static>(E);
 
+pub trait ToggleableExt<E: hobo::AsElement + Clone + Copy + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static>: std::ops::Deref<Target = Toggleable<E>> + hobo::AsElement + Copy + Sized + 'static {
 	/// Takes in a closure of (self, current toggle state as fired by the mutable) and executes it.
 	fn set_on_toggle(self, mut f: impl FnMut(bool) + 'static) -> Self {
-		let state = self.try_get_cmp::<ToggleState>().expect("No Toggle Mutable found. Did you call `set_/toggleable`?");
-		self.add_bundle(state.signal().subscribe(move |x| f(x.0)));
+		self.add_bundle(self.get_cmp::<ToggleState>().signal().subscribe(move |x| f(x.0)));
 		self
 	}
 	fn on_toggle(self, f: impl FnMut(bool) + 'static) -> Self { self.set_on_toggle(f); self }
@@ -38,18 +32,27 @@ pub trait Toggleable: AsElement + Copy + Sized + 'static {
 	}
 
 	fn set_value(&self, v: bool) {
-		self.get_cmp::<ToggleState>().set(Toggle(v));
+		self.get_cmp::<ToggleState>().lock_mut().0 = v;
 	}
 
 	fn toggle(&self) {
-		self.get_cmp::<ToggleState>().lock_mut().tap_mut(|x| { x.0 = !x.0; });
+		self.get_cmp::<ToggleState>().lock_mut().0.tap_mut(|x| { *x = !*x; });
 	}
 
-	fn value_signal(self) -> hobo::signal::Map<MutableSignal<Toggle>, fn (Toggle) -> bool> {
-		fn lift_toggle(x: Toggle) -> bool { x.0 }
-
-		self.get_cmp::<ToggleState>().signal().map(lift_toggle)
+	fn value_signal(self) -> impl hobo::signal::Signal<Item = bool> {
+		self.get_cmp::<ToggleState>().signal_ref(|x| x.0)
 	}
 
 	fn toggle_on_click(self) -> Self { self.on_click(move |_| self.toggle()) }
+}
+
+// There's checkboxes, radials, and switches. And maybe even different types of those.
+// They all have a bunch of shared functionality,
+// the on_flip function didn't really do it very well, and I still wanted some consistency.
+// So I thought hey, the "StringValue" trait was very cool, maybe we can similarly do a trait for "Toggleables"?
+impl<E: hobo::AsElement + Clone + Copy + std::fmt::Debug + PartialEq + Eq + std::hash::Hash + 'static> Toggleable<E> {
+	pub fn new(element: E, default: bool) -> Self {
+		Self(element)
+			.component(Mutable::new(Toggle(default)))
+	}
 }

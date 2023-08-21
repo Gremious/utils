@@ -1,6 +1,5 @@
 #![feature(async_fn_in_trait, proc_macro_hygiene, stmt_expr_attributes, return_position_impl_trait_in_trait)]
 
-#[cfg(feature = "hobo_plus")] pub mod hobo_plus;
 pub mod auth;
 pub mod serde_utils;
 pub mod common_prelude;

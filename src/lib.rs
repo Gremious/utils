@@ -3,7 +3,6 @@
 pub mod auth;
 pub mod serde_utils;
 pub mod common_prelude;
-pub mod rkyv_shims;
 pub mod duration;
 pub mod logger;
 pub mod math;

@@ -13,7 +13,6 @@ pub struct Token {
 	pub expires_in: i64,
 	pub access_token: String,
 	pub refresh_token: Option<String>,
-	#[with(rkyv_shims::ChronoDateTimeUtc)]
 	#[default(chrono::Utc::now())]
 	#[serde(default = "chrono::Utc::now")]
 	pub created_at: chrono::DateTime<chrono::Utc>,

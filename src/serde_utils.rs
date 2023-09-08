@@ -40,3 +40,23 @@ pub fn string_or_number<'de, D: serde::Deserializer<'de>>(d: D) -> Result<u64, D
 		Value::U64(x) => Ok(x),
 	}
 }
+
+pub mod chrono_duration_minutes {
+	use serde::{Deserialize, Serialize};
+	pub fn deserialize<'de, D: serde::Deserializer<'de>>(deserializer: D) -> Result<chrono::Duration, D::Error> {
+		Ok(chrono::Duration::minutes(i64::deserialize(deserializer)?))
+	}
+	pub fn serialize<S: serde::Serializer>(value: &chrono::Duration, serializer: S) -> Result<S::Ok, S::Error> {
+		i64::serialize(&value.num_minutes(), serializer)
+	}
+}
+
+pub mod chrono_duration_seconds {
+	use serde::{Deserialize, Serialize};
+	pub fn deserialize<'de, D: serde::Deserializer<'de>>(deserializer: D) -> Result<chrono::Duration, D::Error> {
+		Ok(chrono::Duration::seconds(i64::deserialize(deserializer)?))
+	}
+	pub fn serialize<S: serde::Serializer>(value: &chrono::Duration, serializer: S) -> Result<S::Ok, S::Error> {
+		i64::serialize(&value.num_seconds(), serializer)
+	}
+}

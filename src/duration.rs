@@ -65,9 +65,10 @@ impl Duration {
 	}
 }
 
-impl From<std::time::Duration> for Duration {
-	fn from(dur: std::time::Duration) -> Self {
-		Self(chrono::Duration::from_std(dur).unwrap())
+impl TryFrom<std::time::Duration> for Duration {
+	type Error = chrono::OutOfRangeError;
+	fn try_from(dur: std::time::Duration) -> Result<Self, Self::Error> {
+		Ok(Self(chrono::Duration::from_std(dur)?))
 	}
 }
 

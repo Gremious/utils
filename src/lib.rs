@@ -36,12 +36,6 @@ pub fn spawn_complain_send<T>(x: impl std::future::Future<Output = anyhow::Resul
 #[must_use]
 pub fn default<T: Default>() -> T { T::default() }
 
-pub fn make_dir(path: impl AsRef<std::ffi::OsStr>) -> std::io::Result<std::path::PathBuf> {
-	let path = std::path::PathBuf::from(&path);
-	std::fs::create_dir_all(&path)?;
-	Ok(path)
-}
-
 #[macro_export]
 macro_rules! spawn_complain {
 	($body: block) => { spawn_complain(async move { $body; Ok(()) }) };

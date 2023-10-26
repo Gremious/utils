@@ -1,4 +1,5 @@
-#![feature(async_fn_in_trait, proc_macro_hygiene, stmt_expr_attributes, return_position_impl_trait_in_trait)]
+#![feature(proc_macro_hygiene, stmt_expr_attributes)]
+#![allow(async_fn_in_trait)]
 
 pub mod auth;
 pub mod serde_utils;

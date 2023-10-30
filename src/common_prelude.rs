@@ -10,6 +10,7 @@ pub use anyhow::Context as _;
 pub use crate::duration::Duration;
 pub use fehler::{throw, throws};
 pub use futures::prelude::*;
+pub use itertools;
 pub use itertools::Itertools as _;
 pub use once_cell::sync::{Lazy, OnceCell};
 pub use serde::{Deserialize, Serialize};

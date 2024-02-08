@@ -1,11 +1,11 @@
 // TODO: error type
 pub trait SerdeJsonValueExt {
-	fn from_pointer<T: serde::de::DeserializeOwned>(&self, pointer: &str) -> anyhow::Result<T>;
-	fn from_pointer_mut<T: serde::de::DeserializeOwned>(&mut self, pointer: &str) -> anyhow::Result<T>;
+	fn clone_pointer<T: serde::de::DeserializeOwned>(&self, pointer: &str) -> anyhow::Result<T>;
+	fn take_pointer<T: serde::de::DeserializeOwned>(&mut self, pointer: &str) -> anyhow::Result<T>;
 }
 
 impl SerdeJsonValueExt for serde_json::Value {
-	fn from_pointer<T: serde::de::DeserializeOwned>(&self, pointer: &str) -> anyhow::Result<T> {
+	fn clone_pointer<T: serde::de::DeserializeOwned>(&self, pointer: &str) -> anyhow::Result<T> {
 		use anyhow::Context;
 
 		self
@@ -14,7 +14,7 @@ impl SerdeJsonValueExt for serde_json::Value {
 			.and_then(|x| Ok(serde_json::from_value(x.clone())?))
 	}
 
-	fn from_pointer_mut<T: serde::de::DeserializeOwned>(&mut self, pointer: &str) -> anyhow::Result<T> {
+	fn take_pointer<T: serde::de::DeserializeOwned>(&mut self, pointer: &str) -> anyhow::Result<T> {
 		use anyhow::Context;
 
 		Ok(self

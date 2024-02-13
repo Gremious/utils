@@ -29,5 +29,5 @@ tap = "1"
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { version = "1", features = ["full"] }
 
-[lints]
-workspace = true
+# [lints]
+# workspace = true

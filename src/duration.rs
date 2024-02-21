@@ -4,13 +4,13 @@
 	PartialEq, Eq,
 	shrinkwraprs::Shrinkwrap,
 	Default,
-	serde::Serialize, serde::Deserialize,
 	derive_more::Add, derive_more::Sub,
 	derive_more::From, derive_more::Into,
 	rkyv::Archive, rkyv::Serialize, rkyv::Deserialize,
 )]
 #[repr(transparent)]
 #[archive_attr(derive(PartialOrd, Ord, PartialEq, Eq))]
+#[cfg_attr(feature = "chrono_hack", derive(serde::Serialize, serde::Deserialize))]
 pub struct Duration(chrono::Duration);
 
 impl std::fmt::Display for Duration {
@@ -30,10 +30,21 @@ impl Duration {
 	#[inline] pub fn nanoseconds(nanoseconds: i64)   -> Self { Self(chrono::Duration::nanoseconds(nanoseconds)) }
 
 	pub fn as_seconds_f32(&self) -> f32 { self.as_seconds_f64() as _ }
+
+	#[cfg(feature = "chrono_hack")]
 	pub fn as_seconds_f64(&self) -> f64 {
 		let (secs, nanos) = self.0.as_parts();
 		secs as f64 + nanos as f64 / 1_000_000_000.
 	}
+
+	#[cfg(not(feature = "chrono_hack"))]
+	pub fn as_seconds_f64(&self) -> f64 {
+		let secs = self.0.num_seconds() as f64;
+		let nanos = self.0.num_nanoseconds().unwrap_or(0) as f64;
+		secs + nanos / 1_000_000_000.
+	}
+
+
 	pub fn seconds_f32(secs: f32) -> Self { Self::seconds_f64(secs as _) }
 	pub fn seconds_f64(secs: f64) -> Self { Self(chrono::Duration::nanoseconds(f64::round(secs * 1_000_000_000.) as _)) }
 

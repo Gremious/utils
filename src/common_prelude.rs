@@ -24,3 +24,4 @@ pub use crate::default;
 pub use semver;
 pub use crate::hhmmss::Hhmmss;
 pub use crate::spawn_complain;
+pub use log;

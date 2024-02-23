@@ -2,12 +2,8 @@
 // smth like `RUST_LOG=info,my_crate=trace` where `info` is the level for all targets
 // and `my_crate=trace` is the level for just `my_crate`
 // and we can also do submodules like `RUST_LOG=trace,my_crate::foo=info`
-#[allow(unused_variables)]
-pub fn setup(crate_name: &str) {
-	env_logger::Builder::from_env(env_logger::Env::default().default_filter_or(
-		#[cfg(debug_assertions)] format!("info,{crate_name}=debug"),
-		#[cfg(not(debug_assertions))] "info",
-	))
+pub fn setup() {
+	env_logger::Builder::from_env(env_logger::Env::default())
 		.format(|buf, record| {
 			use std::io::Write;
 

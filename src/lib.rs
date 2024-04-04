@@ -1,7 +1,6 @@
 #![feature(proc_macro_hygiene, stmt_expr_attributes)]
 #![allow(async_fn_in_trait)]
 
-pub mod auth;
 pub mod serde_utils;
 pub mod common_prelude;
 pub mod duration;
@@ -12,7 +11,6 @@ pub mod hhmmss;
 pub use duration::Duration;
 
 use once_cell::sync::Lazy;
-use serde::{Serialize, Deserialize};
 
 pub static REQWEST_CLIENT: Lazy<reqwest::Client> = Lazy::new(reqwest::Client::new);
 

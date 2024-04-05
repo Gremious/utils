@@ -16,7 +16,7 @@ log = "0.4"
 num-traits = "0.2"
 once_cell = "1"
 rand = "0.8"
-reqwest = { version = "0.11", features = ["gzip", "brotli", "json", "rustls-tls-native-roots"], default-features = false }
+reqwest = { version = "0.12", features = ["gzip", "brotli", "json", "rustls-tls-native-roots"], default-features = false }
 rkyv = "0.7"
 semver = "1"
 serde = { version = "1", features = ["derive"] }

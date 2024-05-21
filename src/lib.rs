@@ -26,7 +26,7 @@ pub fn spawn_complain_send<T>(x: impl std::future::Future<Output = anyhow::Resul
 				lvl,
 				&(log::__private_api::module_path!(), log::__private_api::module_path!(), caller.file()),
 				caller.line(),
-				&[] as &[(&str, &str)],
+				Some(&[] as &[(&str, &str)]),
 			);
 		}
 	} });

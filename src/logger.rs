@@ -43,3 +43,6 @@ pub fn setup() {
 		})
 		.init();
 }
+
+#[extend::ext(pub)]
+impl anyhow::Result<()> { fn log_error(self) { if let Err(e) = self { log::error!("{e}"); } } }

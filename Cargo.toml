@@ -27,6 +27,11 @@ smart-default = "0.7"
 sugars = "3"
 tap = "1"
 
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = { version = "0.2", features = ["serde-serialize", "strict-macro", "enable-interning"] }
+wasm-bindgen-futures = "0.4"
+wasm-logger = "0.2"
+
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { version = "1", features = ["full"] }
 

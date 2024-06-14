@@ -39,3 +39,7 @@ pub fn default<T: Default>() -> T { T::default() }
 macro_rules! spawn_complain {
 	($body: block) => { spawn_complain(async move { $body; Ok(()) }) };
 }
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen::prelude::wasm_bindgen]
+extern "C" { pub fn debugger(); }

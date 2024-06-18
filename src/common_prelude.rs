@@ -25,4 +25,4 @@ pub use semver;
 pub use crate::hhmmss::Hhmmss;
 pub use crate::spawn_complain;
 pub use log;
-pub use crate::logger::anyhowResultExt;
+pub use crate::logger::anyhowResultTExt;

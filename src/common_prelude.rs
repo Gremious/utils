@@ -8,7 +8,7 @@ pub use std::{
 
 pub use anyhow::Context as _;
 pub use crate::duration::Duration;
-pub use fehler::{throw, throws};
+pub use culpa::{throw, throws};
 pub use futures::prelude::*;
 pub use itertools;
 pub use itertools::Itertools as _;

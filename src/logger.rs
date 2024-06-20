@@ -44,5 +44,20 @@ pub fn setup() {
 		.init();
 }
 
+
+#[cfg(target_arch = "wasm32")]
 #[extend::ext(pub)]
 impl<T> anyhow::Result<T> { fn log_error(&self) { if let Err(e) = self { log::error!("{e}"); } } }
+
+#[cfg(not(target_arch = "wasm32"))]
+#[extend::ext(pub)]
+impl<T> anyhow::Result<T> {
+	fn log_error(&self) {
+		if let Err(e) = self {
+			#[cfg(not(debug_assertions))]
+			sentry::capture_message(&e.to_string(), sentry::Level::Error);
+
+			log::error!("{e}");
+		}
+	}
+}

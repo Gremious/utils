@@ -72,7 +72,7 @@ impl Duration {
 			(self.num_nanoseconds().unwrap_or(0),  "nanosecond"),
 		].iter()
 			.find(|(x, _)| *x > 0)
-			.map_or("moment".to_owned(), |(value, word)| format!("{value} {word}{}", if *value > 1 { "s" } else { "" }))
+			.map_or("a moment".to_owned(), |(value, word)| format!("{value} {word}{}", if *value > 1 { "s" } else { "" }))
 	}
 }
 

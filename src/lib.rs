@@ -41,5 +41,6 @@ macro_rules! spawn_complain {
 }
 
 #[cfg(target_arch = "wasm32")]
-#[wasm_bindgen::prelude::wasm_bindgen]
-extern "C" { pub fn run_debugger(); }
+pub fn debugger() {
+	web_sys::js_sys::eval("debugger").ok();
+}

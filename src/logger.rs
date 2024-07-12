@@ -46,18 +46,18 @@ pub fn setup() {
 
 
 #[cfg(target_arch = "wasm32")]
-#[extend::ext(pub)]
-impl<T> anyhow::Result<T> { fn log_error(&self) { if let Err(e) = self { log::error!("{e}"); } } }
+#[extend::ext(pub, name=LogError)]
+impl<T> anyhow::Result<T> { fn log_error(&self) { if let Err(e) = self { log::error!("{e:?}"); } } }
 
 #[cfg(not(target_arch = "wasm32"))]
-#[extend::ext(pub)]
+#[extend::ext(pub, name=LogError)]
 impl<T> anyhow::Result<T> {
 	fn log_error(&self) {
 		if let Err(e) = self {
 			#[cfg(not(debug_assertions))]
 			sentry::capture_message(&e.to_string(), sentry::Level::Error);
 
-			log::error!("{e}");
+			log::error!("{e:?}");
 		}
 	}
 }

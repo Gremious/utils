@@ -9,8 +9,7 @@ pub mod math;
 pub mod hhmmss;
 
 pub use duration::Duration;
-
-use once_cell::sync::Lazy;
+use common_prelude::*;
 
 pub static REQWEST_CLIENT: Lazy<reqwest::Client> = Lazy::new(reqwest::Client::new);
 

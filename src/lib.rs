@@ -42,3 +42,50 @@ macro_rules! spawn_complain {
 pub fn debugger() {
 	web_sys::js_sys::eval("debugger").ok();
 }
+
+pub trait VerboseErrorForStatus {
+	/// Basically
+	///
+	/// req
+	///   .error_for_status()?
+	///   .json::<T>().await
+	///
+	/// Except it will log not just the status code,
+	/// but the entire json responce on error.
+	/// It will also tell you which field in which sturct is missing.
+	async fn try_json<T: for<'a> serde::Deserialize<'a>>(self) -> anyhow::Result<T>;
+
+	/// error_for_status() but it will log the json responce as well.
+	///
+	/// Separate trait fn for when you don't need the responce e.g. POST requests.
+	async fn body_for_status(self) -> anyhow::Result<()>;
+}
+
+impl VerboseErrorForStatus for reqwest::Response {
+	async fn try_json<T: for <'a> serde::Deserialize<'a>>(self) -> anyhow::Result<T> {
+		let type_name = std::any::type_name::<T>();
+
+		if self.status().is_success() {
+			let raw_json = self.json::<serde_json::Value>().await?;
+			let res_log = format!("{raw_json:#?}");
+			let try_json = serde_json::from_value::<T>(raw_json);
+
+			Ok(try_json.map_err(anyhow::Error::from)
+				.with_context(|| format!("\nFailed to deserialize {type_name};\n\nResponce: {res_log}"))?)
+		} else {
+			let error = format!("Status: {}: {:?}", self.status().as_str(), self.status().canonical_reason());
+			let json = self.json::<serde_json::Value>().await?;
+			Err(anyhow::anyhow!("{error}: \n{json:#?}"))
+		}
+	}
+
+	async fn body_for_status(self) -> anyhow::Result<()> {
+		if self.status().is_success() {
+			Ok(())
+		} else {
+			let error = format!("Status: {}: {:?}", self.status().as_str(), self.status().canonical_reason());
+			let json = self.json::<serde_json::Value>().await?;
+			Err(anyhow::anyhow!("{error}: \n{json:#?}"))
+		}
+	}
+}

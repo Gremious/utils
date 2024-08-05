@@ -18,8 +18,11 @@ impl std::fmt::Display for Duration {
 }
 
 impl Duration {
+	pub const MAX: Self = Self(chrono::Duration::MAX);
+
 	#[inline] pub fn zero()                          -> Self { Self(chrono::Duration::zero()) }
-	#[inline] pub fn max_value()                     -> Self { Self(chrono::Duration::max_value()) }
+	#[deprecated = "Use `Duration::MAX` instead"]
+	#[inline] pub fn max_value()                     -> Self { Self(chrono::Duration::MAX) }
 	#[inline] pub fn weeks(weeks: i64)               -> Self { Self(chrono::Duration::weeks(weeks)) }
 	#[inline] pub fn days(days: i64)                 -> Self { Self(chrono::Duration::days(days)) }
 	#[inline] pub fn hours(hours: i64)               -> Self { Self(chrono::Duration::hours(hours)) }

@@ -55,6 +55,14 @@ pub trait VerboseErrorForStatus {
 	/// It will also tell you which field in which sturct is missing if serde failed.
 	async fn try_json<T: for<'a> serde::Deserialize<'a>>(self) -> anyhow::Result<T>;
 
+	/// req
+	///   .error_for_status()?
+	///   .json::<serde_json::Value>().await
+	///
+	///   So that you don't do serde_json::from_value::<serde_json::Value>()
+	///   and skips the serde errors that aren't relevant
+	async fn try_json_value(self) -> anyhow::Result<serde_json::Value>;
+
 	/// error_for_status() but it will log the json responce as well.
 	///
 	/// Separate trait fn for when you don't need the responce e.g. POST requests.
@@ -82,6 +90,20 @@ impl VerboseErrorForStatus for reqwest::Response {
 		}
 	}
 
+	async fn try_json_value(self) -> anyhow::Result<serde_json::Value> {
+		let status = self.status();
+		let raw_json = self.json::<serde_json::Value>().await
+			.context("Got non-json responce?\nTry .text() instead of .json() and see what you get.")?;
+
+		if status.is_success() {
+			Ok(raw_json)
+		} else {
+			let error = format!("Status: {}: {:?}", status.as_str(), status.canonical_reason());
+			Err(anyhow::anyhow!("{error}: \n{raw_json:#?}"))
+		}
+	}
+
+	// Only returns body if error so maybe need better name
 	async fn body_for_status(self) -> anyhow::Result<()> {
 		let status = self.status();
 

@@ -52,7 +52,7 @@ pub trait VerboseErrorForStatus {
 	///
 	/// Except it will log not just the status code,
 	/// but the entire json responce on error.
-	/// It will also tell you which field in which sturct is missing.
+	/// It will also tell you which field in which sturct is missing if serde failed.
 	async fn try_json<T: for<'a> serde::Deserialize<'a>>(self) -> anyhow::Result<T>;
 
 	/// error_for_status() but it will log the json responce as well.
@@ -64,7 +64,8 @@ pub trait VerboseErrorForStatus {
 impl VerboseErrorForStatus for reqwest::Response {
 	async fn try_json<T: for <'a> serde::Deserialize<'a>>(self) -> anyhow::Result<T> {
 		let status = self.status();
-		let raw_json = self.json::<serde_json::Value>().await?;
+		let raw_json = self.json::<serde_json::Value>().await
+			.context("Got non-json responce?\nTry .text() instead of .json() and see what you get.")?;
 		let type_name = std::any::type_name::<T>();
 
 		if status.is_success() {

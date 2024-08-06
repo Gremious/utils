@@ -65,7 +65,7 @@ pub trait VerboseErrorForStatus {
 
 	/// error_for_status() but it will log the json responce as well.
 	///
-	/// Separate trait fn for when you don't need the responce e.g. POST requests.
+	/// Separate fn for when you don't need the responce e.g. some POST requests.
 	async fn body_for_status(self) -> anyhow::Result<()>;
 }
 
@@ -77,7 +77,7 @@ impl VerboseErrorForStatus for reqwest::Response {
 		let type_name = std::any::type_name::<T>();
 
 		if status.is_success() {
-			// Could do "to_string_pretty" but that can fail with a map with non string keys.
+			// Could do "to_string_pretty" but that can fail if you have a map with non string keys.
 			// Format is guaranteed.
 			let responce_fmt = format!("{raw_json:#?}");
 			let try_json = serde_json::from_value::<T>(raw_json);

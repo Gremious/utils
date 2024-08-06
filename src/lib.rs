@@ -63,27 +63,31 @@ pub trait VerboseErrorForStatus {
 
 impl VerboseErrorForStatus for reqwest::Response {
 	async fn try_json<T: for <'a> serde::Deserialize<'a>>(self) -> anyhow::Result<T> {
+		let status = self.status();
+		let raw_json = self.json::<serde_json::Value>().await?;
 		let type_name = std::any::type_name::<T>();
 
-		if self.status().is_success() {
-			let raw_json = self.json::<serde_json::Value>().await?;
-			let res_log = format!("{raw_json:#?}");
+		if status.is_success() {
+			// Could do "to_string_pretty" but that can fail with a map with non string keys.
+			// Format is guaranteed.
+			let responce_fmt = format!("{raw_json:#?}");
 			let try_json = serde_json::from_value::<T>(raw_json);
 
 			Ok(try_json.map_err(anyhow::Error::from)
-				.with_context(|| format!("\nFailed to deserialize {type_name};\n\nResponce: {res_log}"))?)
+				.with_context(|| format!("\nFailed to deserialize {type_name};\n\nResponce: {responce_fmt}"))?)
 		} else {
-			let error = format!("Status: {}: {:?}", self.status().as_str(), self.status().canonical_reason());
-			let json = self.json::<serde_json::Value>().await?;
-			Err(anyhow::anyhow!("{error}: \n{json:#?}"))
+			let error = format!("Status: {}: {:?}", status.as_str(), status.canonical_reason());
+			Err(anyhow::anyhow!("{error}: \n{raw_json:#?}"))
 		}
 	}
 
 	async fn body_for_status(self) -> anyhow::Result<()> {
-		if self.status().is_success() {
+		let status = self.status();
+
+		if status.is_success() {
 			Ok(())
 		} else {
-			let error = format!("Status: {}: {:?}", self.status().as_str(), self.status().canonical_reason());
+			let error = format!("Status: {}: {:?}", status.as_str(), status.canonical_reason());
 			let json = self.json::<serde_json::Value>().await?;
 			Err(anyhow::anyhow!("{error}: \n{json:#?}"))
 		}

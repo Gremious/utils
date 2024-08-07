@@ -51,7 +51,7 @@ pub trait VerboseErrorForStatus {
 	///   .json::<T>().await
 	///
 	/// Except it will log not just the status code,
-	/// but the entire json responce on error.
+	/// but the entire json response on error.
 	/// It will also tell you which field in which sturct is missing if serde failed.
 	async fn try_json<T: for<'a> serde::Deserialize<'a>>(self) -> anyhow::Result<T>;
 
@@ -63,9 +63,9 @@ pub trait VerboseErrorForStatus {
 	///   and skips the serde errors that aren't relevant
 	async fn try_json_value(self) -> anyhow::Result<serde_json::Value>;
 
-	/// error_for_status() but it will log the json responce as well.
+	/// error_for_status() but it will log the json response as well.
 	///
-	/// Separate fn for when you don't need the responce e.g. some POST requests.
+	/// Separate fn for when you don't need the response e.g. some POST requests.
 	async fn body_for_status(self) -> anyhow::Result<()>;
 }
 
@@ -73,17 +73,17 @@ impl VerboseErrorForStatus for reqwest::Response {
 	async fn try_json<T: for <'a> serde::Deserialize<'a>>(self) -> anyhow::Result<T> {
 		let status = self.status();
 		let raw_json = self.json::<serde_json::Value>().await
-			.context("Got non-json responce?\nTry .text() instead of .json() and see what you get.")?;
+			.context("Got non-json response?\nTry .text() instead of .json() and see what you get.")?;
 		let type_name = std::any::type_name::<T>();
 
 		if status.is_success() {
 			// Could do "to_string_pretty" but that can fail if you have a map with non string keys.
 			// Format is guaranteed.
-			let responce_fmt = format!("{raw_json:#?}");
+			let response_fmt = format!("{raw_json:#?}");
 			let try_json = serde_json::from_value::<T>(raw_json);
 
 			Ok(try_json.map_err(anyhow::Error::from)
-				.with_context(|| format!("\nFailed to deserialize {type_name};\n\nResponce: {responce_fmt}"))?)
+				.with_context(|| format!("\nFailed to deserialize {type_name};\n\nResponse: {response_fmt}"))?)
 		} else {
 			let error = format!("Status: {}: {:?}", status.as_str(), status.canonical_reason());
 			Err(anyhow::anyhow!("{error}: \n{raw_json:#?}"))
@@ -93,7 +93,7 @@ impl VerboseErrorForStatus for reqwest::Response {
 	async fn try_json_value(self) -> anyhow::Result<serde_json::Value> {
 		let status = self.status();
 		let raw_json = self.json::<serde_json::Value>().await
-			.context("Got non-json responce?\nTry .text() instead of .json() and see what you get.")?;
+			.context("Got non-json response?\nTry .text() instead of .json() and see what you get.")?;
 
 		if status.is_success() {
 			Ok(raw_json)

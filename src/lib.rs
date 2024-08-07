@@ -66,7 +66,7 @@ pub trait VerboseErrorForStatus {
 	/// error_for_status() but it will log the json response as well.
 	///
 	/// Separate fn for when you don't need the response e.g. some POST requests.
-	async fn body_for_status(self) -> anyhow::Result<()>;
+	async fn error_for_status_with_body(self) -> anyhow::Result<reqwest::Response>;
 }
 
 impl VerboseErrorForStatus for reqwest::Response {
@@ -77,9 +77,8 @@ impl VerboseErrorForStatus for reqwest::Response {
 		let type_name = std::any::type_name::<T>();
 
 		if status.is_success() {
-			// Could do "to_string_pretty" but that can fail if you have a map with non string keys.
-			// Format is guaranteed.
-			let response_fmt = format!("{raw_json:#?}");
+			// Can't fail since raw_json succeeded already.
+			let response_fmt = serde_json::to_string_pretty(&raw_json).unwrap();
 			let try_json = serde_json::from_value::<T>(raw_json);
 
 			Ok(try_json.map_err(anyhow::Error::from)
@@ -94,25 +93,25 @@ impl VerboseErrorForStatus for reqwest::Response {
 		let status = self.status();
 		let raw_json = self.json::<serde_json::Value>().await
 			.context("Got non-json response?\nTry .text() instead of .json() and see what you get.")?;
+		let response_fmt = serde_json::to_string_pretty(&raw_json).unwrap();
 
 		if status.is_success() {
 			Ok(raw_json)
 		} else {
 			let error = format!("Status: {}: {:?}", status.as_str(), status.canonical_reason());
-			Err(anyhow::anyhow!("{error}: \n{raw_json:#?}"))
+			Err(anyhow::anyhow!("{error}: \n{response_fmt}"))
 		}
 	}
 
-	// Only returns body if error so maybe need better name
-	async fn body_for_status(self) -> anyhow::Result<()> {
+	async fn error_for_status_with_body(self) -> anyhow::Result<reqwest::Response> {
 		let status = self.status();
 
 		if status.is_success() {
-			Ok(())
+			Ok(self)
 		} else {
 			let error = format!("Status: {}: {:?}", status.as_str(), status.canonical_reason());
-			let json = self.json::<serde_json::Value>().await?;
-			Err(anyhow::anyhow!("{error}: \n{json:#?}"))
+			let response = self.text().await?;
+			Err(anyhow::anyhow!("{error}: \n{response:#?}"))
 		}
 	}
 }

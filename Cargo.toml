@@ -8,7 +8,7 @@ anstyle = "1"
 anyhow = "1"
 chrono = { version = "0.4", features = ["serde", "clock", "std", "wasmbind", "rkyv"], default-features = false }
 culpa = "1"
-derive_more = "0.99"
+derive_more = "1"
 env_logger = "0.11"
 extend = "1"
 futures = "0.3"

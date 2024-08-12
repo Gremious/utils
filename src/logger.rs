@@ -52,6 +52,7 @@ impl<T> anyhow::Result<T> { fn log_error(&self) { if let Err(e) = self { log::er
 #[cfg(not(target_arch = "wasm32"))]
 #[extend::ext(pub, name=LogError)]
 impl<T> anyhow::Result<T> {
+	#[track_caller]
 	fn log_error(&self) {
 		if let Err(e) = self {
 			#[cfg(not(debug_assertions))]

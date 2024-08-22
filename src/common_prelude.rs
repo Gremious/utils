@@ -25,3 +25,4 @@ pub use crate::spawn_complain;
 pub use log;
 pub use crate::logger::LogError;
 pub use crate::VerboseErrorForStatus;
+pub use crate::JoinHandleExt;

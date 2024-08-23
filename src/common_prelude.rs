@@ -26,3 +26,4 @@ pub use log;
 pub use crate::logger::LogError;
 pub use crate::VerboseErrorForStatus;
 pub use crate::JoinHandleExt;
+pub use crate::chrono_utils::ChronoNaiveDateExt;

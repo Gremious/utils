@@ -7,6 +7,7 @@ pub mod duration;
 pub mod logger;
 pub mod math;
 pub mod hhmmss;
+pub mod chrono_utils;
 
 pub use duration::Duration;
 use common_prelude::*;

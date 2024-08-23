@@ -8,12 +8,8 @@ pub enum Error {
 
 type Result<T> = std::result::Result<T, Error>;
 
-pub trait SerdeJsonValueExt {
-	fn clone_pointer<T: serde::de::DeserializeOwned>(&self, pointer: &str) -> Result<T>;
-	fn take_pointer<T: serde::de::DeserializeOwned>(&mut self, pointer: &str) -> Result<T>;
-}
-
-impl SerdeJsonValueExt for serde_json::Value {
+#[extend::ext(pub, name = SerdeJsonValueExt)]
+impl serde_json::Value {
 	fn clone_pointer<T: serde::de::DeserializeOwned>(&self, pointer: &str) -> Result<T> {
 		self
 			.pointer(pointer)

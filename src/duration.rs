@@ -70,7 +70,7 @@ impl Duration {
 			(self.num_hours(),					   "hour"),
 			(self.num_minutes(),				   "minute"),
 			(self.num_seconds(),				   "second"),
-			(self.num_milliseconds(),			   "miliseconds"),
+			(self.num_milliseconds(),			   "milisecond"),
 			(self.num_microseconds().unwrap_or(0), "microsecond"),
 			(self.num_nanoseconds().unwrap_or(0),  "nanosecond"),
 		].iter()

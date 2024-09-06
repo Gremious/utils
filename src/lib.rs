@@ -54,7 +54,8 @@ pub fn debugger() {
 	web_sys::js_sys::eval("debugger").ok();
 }
 
-pub trait VerboseErrorForStatus {
+#[extend::ext(pub, name = VerboseErrorForStatus)]
+impl reqwest::Response {
 	/// Basically
 	///
 	/// req
@@ -64,15 +65,6 @@ pub trait VerboseErrorForStatus {
 	/// Except it will log not just the status code,
 	/// but the entire json response on error.
 	/// It will also tell you which field in which sturct is missing if serde failed.
-	async fn try_json<T: for<'a> serde::Deserialize<'a> + 'static>(self) -> anyhow::Result<T>;
-
-	/// error_for_status() but it will log the json response as well.
-	///
-	/// Separate fn for when you don't need the response e.g. some POST requests.
-	async fn error_for_status_with_body(self) -> anyhow::Result<reqwest::Response>;
-}
-
-impl VerboseErrorForStatus for reqwest::Response {
 	async fn try_json<T: for <'a> serde::Deserialize<'a> + 'static>(self) -> anyhow::Result<T> {
 		let status = self.status();
 		let bytes = self.bytes().await?;
@@ -121,6 +113,9 @@ impl VerboseErrorForStatus for reqwest::Response {
 		}
 	}
 
+	/// error_for_status() but it will log the json response as well.
+	///
+	/// Separate fn for when you don't need the response e.g. some POST requests.
 	async fn error_for_status_with_body(self) -> anyhow::Result<reqwest::Response> {
 		let status = self.status();
 

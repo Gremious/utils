@@ -24,6 +24,11 @@ impl<T> tokio::task::JoinHandle<T> {
 	}
 }
 
+#[extend::ext(pub)]
+impl bool {
+	fn flip(&mut self) { *self ^= true; }
+}
+
 #[cfg(not(target_arch = "wasm32"))]
 #[track_caller]
 pub fn spawn_complain_send<T>(x: impl std::future::Future<Output = anyhow::Result<T>> + Send + 'static) {

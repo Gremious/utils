@@ -9,7 +9,7 @@
 	rkyv::Archive, rkyv::Serialize, rkyv::Deserialize,
 )]
 #[repr(transparent)]
-#[archive_attr(derive(PartialOrd, Ord, PartialEq, Eq))]
+#[rkyv(derive(PartialOrd, Ord, PartialEq, Eq))]
 #[cfg_attr(feature = "chrono_hack", derive(serde::Serialize, serde::Deserialize))]
 pub struct Duration(chrono::Duration);
 

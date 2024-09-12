@@ -17,7 +17,7 @@ log = "0.4"
 num-traits = "0.2"
 rand = "0.8"
 reqwest = { version = "0.12", features = ["gzip", "brotli", "json", "rustls-tls-native-roots"], default-features = false }
-rkyv = "0.7"
+rkyv = "0.8"
 semver = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

@@ -26,7 +26,7 @@ smart-default = "0.7"
 sugars = "3"
 tap = "1"
 thiserror = "1"
-tokio = "1"
+tokio = { version = "1", features = ["rt"], default-features = false }
 
 [dev-dependencies]
 mockito = "1"

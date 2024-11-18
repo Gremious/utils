@@ -16,7 +16,7 @@ futures = "0.3"
 itertools = "0.13"
 log = "0.4"
 num-traits = "0.2"
-rand = "0.8"
+rand = "0.9.0-alpha.2"
 reqwest = { version = "0.12", features = ["gzip", "brotli", "json", "rustls-tls-native-roots"], default-features = false }
 rkyv = "0.8"
 semver = "1"

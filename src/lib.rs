@@ -29,6 +29,40 @@ impl bool {
 	fn flip(&mut self) { *self ^= true; }
 }
 
+#[cfg(target_arch = "wasm32")]
+#[track_caller]
+pub fn spawn_complain<T>(x: impl std::future::Future<Output = anyhow::Result<T>> + 'static) {
+	let caller = std::panic::Location::caller();
+	wasm_bindgen_futures::spawn_local(x.map(|res| if let Err(e) = res {
+		let lvl = log::Level::Error;
+		if lvl <= log::STATIC_MAX_LEVEL && lvl <= log::max_level() {
+			log::__private_api::log(
+				log::__private_api::format_args!("{e:?}"),
+				lvl,
+				&(log::__private_api::module_path!(), log::__private_api::module_path!(), caller),
+				(),
+			);
+		}
+	}));
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[track_caller]
+pub fn spawn_complain<T>(x: impl std::future::Future<Output = anyhow::Result<T>> + 'static) {
+	let caller = core::panic::Location::caller();
+	tokio::task::spawn_local(async move { if let Err(e) = x.await {
+		let lvl = log::Level::Error;
+		if lvl <= log::STATIC_MAX_LEVEL && lvl <= log::max_level() {
+			log::__private_api::log(
+				log::__private_api::format_args!("{e:?}"),
+				lvl,
+				&(log::__private_api::module_path!(), log::__private_api::module_path!(), caller),
+				(),
+			);
+		}
+	} });
+}
+
 #[cfg(not(target_arch = "wasm32"))]
 #[track_caller]
 pub fn spawn_complain_send<T>(x: impl std::future::Future<Output = anyhow::Result<T>> + Send + 'static) {

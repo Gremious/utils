@@ -13,7 +13,7 @@ derive_more = { version = "1", features = ["full"] }
 env_logger = "0.11"
 extend = "1"
 futures = "0.3"
-itertools = "0.13"
+itertools = "0.14"
 log = "0.4"
 num-traits = "0.2"
 rand = "0.9.0-beta.1"

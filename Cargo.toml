@@ -13,10 +13,10 @@ derive_more = { version = "1", features = ["full"] }
 env_logger = "0.11"
 extend = "1"
 futures = "0.3"
-itertools = "0.13"
+itertools = "0.14"
 log = "0.4"
 num-traits = "0.2"
-rand = "0.9.0-alpha.2"
+rand = "0.9.0-beta.1"
 reqwest = { version = "0.12", features = ["gzip", "brotli", "json", "rustls-tls-native-roots"], default-features = false }
 rkyv = "0.8"
 semver = "1"
@@ -40,7 +40,7 @@ web-sys = "0.3"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { version = "1", features = ["full"] }
-sentry = { version = "0.34", default-features = false, features = ["backtrace", "contexts", "debug-images", "panic", "reqwest", "rustls"] }
+sentry = { version = "0.35", default-features = false, features = ["backtrace", "contexts", "debug-images", "panic", "reqwest", "rustls"] }
 
 # [lints]
 # workspace = true

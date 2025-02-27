@@ -28,6 +28,7 @@ sugars = "3"
 tap = "1"
 thiserror = "2"
 tokio = { version = "1", features = ["rt"], default-features = false }
+utils-macros = { path = "macros" }
 
 [dev-dependencies]
 mockito = "1"

@@ -1,5 +1,5 @@
 #![feature(proc_macro_hygiene, stmt_expr_attributes)]
-#![allow(async_fn_in_trait)]
+#![expect(async_fn_in_trait)]
 
 pub mod serde_utils;
 pub mod common_prelude;

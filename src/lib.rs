@@ -3,13 +3,13 @@
 
 pub mod serde_utils;
 pub mod common_prelude;
-pub mod duration;
+#[cfg(feature = "custom_duration")] pub mod duration;
 pub mod logger;
 pub mod math;
 pub mod hhmmss;
 pub mod chrono_utils;
 
-pub use duration::Duration;
+#[cfg(feature = "custom_duration")] pub use duration::Duration;
 use common_prelude::*;
 
 pub static REQWEST_CLIENT: Lazy<reqwest::Client> = Lazy::new(reqwest::Client::new);

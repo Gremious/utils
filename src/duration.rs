@@ -2,15 +2,16 @@
 	Clone, Copy, Debug, Hash,
 	PartialOrd, Ord,
 	PartialEq, Eq,
-	shrinkwraprs::Shrinkwrap,
+	synonym::Synonym,
 	Default,
 	derive_more::Add, derive_more::Sub,
-	derive_more::From, derive_more::Into,
+	// derive_more::From, derive_more::Into,
 	rkyv::Archive, rkyv::Serialize, rkyv::Deserialize,
 )]
 #[repr(transparent)]
 #[rkyv(derive(PartialOrd, Ord, PartialEq, Eq))]
 #[cfg_attr(feature = "chrono_hack", derive(serde::Serialize, serde::Deserialize))]
+#[synonym(force(AsRef, Deref))]
 pub struct Duration(chrono::Duration);
 
 impl std::fmt::Display for Duration {
@@ -21,8 +22,6 @@ impl Duration {
 	pub const MAX: Self = Self(chrono::Duration::MAX);
 
 	#[inline] pub fn zero()                          -> Self { Self(chrono::Duration::zero()) }
-	#[deprecated = "Use `Duration::MAX` instead"]
-	#[inline] pub fn max_value()                     -> Self { Self(chrono::Duration::MAX) }
 	#[inline] pub fn weeks(weeks: i64)               -> Self { Self(chrono::Duration::weeks(weeks)) }
 	#[inline] pub fn days(days: i64)                 -> Self { Self(chrono::Duration::days(days)) }
 	#[inline] pub fn hours(hours: i64)               -> Self { Self(chrono::Duration::hours(hours)) }

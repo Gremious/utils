@@ -26,4 +26,4 @@ pub use crate::VerboseErrorForStatus;
 pub use crate::JoinHandleExt;
 pub use crate::chrono_utils::ChronoNaiveDateExt;
 pub use crate::boolExt;
-pub use crate::{dur, hmap, hset};
+pub use crate::{dur, hmap, hset, hash};

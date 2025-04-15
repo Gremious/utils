@@ -103,6 +103,19 @@ macro_rules! hset {
 	}};
 }
 
+#[macro_export]
+macro_rules! hash {
+	($value:expr) => {{
+		use ::std::{
+            collections::hash_map::DefaultHasher,
+            hash::{Hash, Hasher},
+        };
+        let mut hasher = DefaultHasher::new();
+        $value.hash(&mut hasher);
+        hasher.finish()
+	}};
+}
+
 #[extend::ext(pub, name = VerboseErrorForStatus)]
 impl reqwest::Response {
 	/// Basically
